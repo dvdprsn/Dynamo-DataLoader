@@ -1,5 +1,6 @@
 import csv
 import os
+import table
 
 
 def update_col(client, table_name, key, col_name, col_data):
@@ -94,7 +95,7 @@ def load_langs(client, file):
         for row in reader:
             if None in row and 'Languages' in row:
                 row[None].append(str(row['Languages']))
-                row['Languages'] = ', '.join(row[None])
+                row['Languages'] = ','.join(row[None])
                 row.pop(None)
             for key in row:
                 if not key == 'Country Name':
@@ -124,3 +125,40 @@ def load(client):
                 print('loading languages!')
                 load_langs(client, f)
     print("Done Loading data!")
+
+
+def load_single(client):
+    inp = -1
+
+    while inp not in range(1, 3):
+        inp = int(input("Select Table (1) NonEconomic (2) Economic > "))
+    table_name = None
+    if inp == 1:
+        table_name = 'NonEconomic'
+    elif inp == 2:
+        table_name = 'Economic'
+    key = input("Enter Country Name or ISO3 > ")
+    if len(key) == 3:
+        key = table.query_from_iso3(client, table_name, key.upper())
+
+    key = key.capitalize()
+    try:
+        cur_data = table.query_data(client, table_name, key)
+    except:
+        return
+    col = input("Enter attribute name > ")
+    val = input("Enter attribute value > ")
+    if col.lower() == 'languages':
+        langs = cur_data['Languages'].split(',')
+        langs.append(str(val))
+        try:
+            update_col(client, table_name, key, 'Languages', ','.join(langs))
+        except:
+            print("Unable to add data")
+        return
+    try:
+        if val.isdigit():
+            val = int(val)
+        update_col(client, table_name, key, col, val)
+    except:
+        print("Unable to add data")

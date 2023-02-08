@@ -79,7 +79,7 @@ def query_data(client, table_name, key):
     response = table.get_item(Key={'CountryName': key})
     item = response.get('Item')
     if item:
-        print(item)
+        return item
         # print(f"{item['ISO3']} {item['CountryName']} {item['Area']}")
     else:
         print("No item found!")
@@ -90,8 +90,7 @@ def query_from_iso3(client, table_name, key):
     response = table.scan(
         FilterExpression=Attr('ISO3').eq(key)
     )
-    items = response['Items']
-    print(items)
+    return response['Items'][0]['CountryName']
 
 
 def get_all_data(client, table_name):
@@ -105,8 +104,8 @@ def get_all_data(client, table_name):
     print(f"Total Items: {response['Count']}")
 
 
-def get_pop_rank(client, table_name, year, country):
-    table = client.Table(table_name)
+def get_pop_rank(client, year, country):
+    table = client.Table('NonEconomic')
 
     resp = table.get_item(Key={'CountryName': country})
     pop = 0
@@ -131,10 +130,10 @@ def get_pop_rank(client, table_name, year, country):
     return f"year: {year}, pop: {pop}, rank: {rank}"
 
 
-def gen_pop_table(client, table_name, country):
+def gen_pop_table(client, country):
     outputTable = []
     for year in range(1970, 2019 + 1):
-        out = get_pop_rank(client, table_name, str(year), country)
+        out = get_pop_rank(client, str(year), country)
         outputTable.append(out)
     while '-1' in outputTable[0]:
         outputTable.pop(0)
