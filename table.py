@@ -123,4 +123,9 @@ def get_pop_rank(client, table_name, year, country):
             break
 
     print(f"rank: {rank}")
-    print(items)
+    # print(items)
+
+
+def gen_pop_table(client, table_name, country):
+    for year in range(1971, 2019 + 1):
+        get_pop_rank(client, table_name, str(year), country)
