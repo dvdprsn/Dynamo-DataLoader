@@ -26,7 +26,7 @@ def main():
     #
     # table.get_all_data(db_client, 'NonEconomic')
     # table.query_from_iso3(db_client, 'NonEconomic', 'CAN')
-    table.get_pop_rank(db_client, 'NonEconomic', '2000', 'Canada')
+    table.get_pop_rank(db_client, 'NonEconomic', '2018', 'Canada')
 
 
 if __name__ == "__main__":

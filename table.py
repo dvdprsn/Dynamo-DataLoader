@@ -107,12 +107,12 @@ def get_pop_rank(client, table_name, year, country):
     table = client.Table(table_name)
 
     resp = table.get_item(Key={'CountryName': country})
-
+    # Retrieve only the country name and the population for the given year
     resp = table.scan(ProjectionExpression='CountryName, #attr1',
                       ExpressionAttributeNames={'#attr1': year})
     items = resp['Items']
     items = [{'CountryName': item['CountryName'],
-              year: int(item[year])} for item in items]
+              year: int(item[year])} for item in items if item[year]]
 
     # https://stackoverflow.com/questions/3766633/how-to-sort-with-lambda-in-python
     items.sort(key=lambda x: x[year], reverse=True)
