@@ -28,24 +28,26 @@ def bulk_load_data(client, table_name, file):
                     Item={
                         'ISO3': row['ISO3'],
                         'CountryName': row['Country Name'],
-                        'Area': int(row['Area'])
+                        'Area': row['Area']
                     }
                 )
     print("Data loaded successfully")
 
 
 def bulk_new_data(client, table_name, file):
-    with open(file, 'r') as csvfile:
+    with open(file, 'r', encoding='utf-8-sig') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
+            if 'Country' in row:
+                row['Country Name'] = row.pop('Country')
             if None in row and 'Languages' in row:
                 row[None].append(str(row['Languages']))
                 row['Languages'] = ', '.join(row[None])
-                row.pop(None, None)
+                row.pop(None)
             for key in row:
                 if not key == 'Country Name':
                     update_col(client, table_name,
-                               row['Country Name'], key, row[key])
+                               row['Country Name'], key.replace(" ", ""), row[key])
 
 
 def update_col(client, table_name, key, col_name, col_data):
@@ -55,11 +57,13 @@ def update_col(client, table_name, key, col_name, col_data):
         Key={
             'CountryName': key
         },
-        UpdateExpression=f'SET {col_name} = :val1',
+        UpdateExpression='SET #attr1 = :val1',
+        ExpressionAttributeNames={
+            '#attr1': col_name
+        },
         ExpressionAttributeValues={
             ':val1': col_data
         }
-
     )
 
 
@@ -97,3 +101,26 @@ def get_all_data(client, table_name):
         print(f"{item}")
 
     print(f"Total Items: {response['Count']}")
+
+
+def get_pop_rank(client, table_name, year, country):
+    table = client.Table(table_name)
+
+    resp = table.get_item(Key={'CountryName': country})
+
+    resp = table.scan(ProjectionExpression='CountryName, #attr1',
+                      ExpressionAttributeNames={'#attr1': year})
+    items = resp['Items']
+    items = [{'CountryName': item['CountryName'],
+              year: int(item[year])} for item in items]
+
+    # https://stackoverflow.com/questions/3766633/how-to-sort-with-lambda-in-python
+    items.sort(key=lambda x: x[year], reverse=True)
+    rank = -1
+    for i, item in enumerate(items):
+        if item['CountryName'] == country:
+            rank = i + 1
+            break
+
+    print(f"rank: {rank}")
+    print(items)

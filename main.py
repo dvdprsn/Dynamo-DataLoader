@@ -20,11 +20,13 @@ def main():
     }
     # table.create(db_client, params)
     # table.bulk_load_data(db_client, 'NonEconomic', 'data/shortlist_area.csv')
-    table.get_all_data(db_client, 'NonEconomic')
-    table.bulk_new_data(db_client, 'NonEconomic',
-                        'data/shortlist_languages.csv')
+    # table.get_all_data(db_client, 'NonEconomic')
+    # table.bulk_new_data(db_client, 'NonEconomic',
+    #                     'data/shortlist_curpop.csv')
     #
-    table.get_all_data(db_client, 'NonEconomic')
+    # table.get_all_data(db_client, 'NonEconomic')
+    # table.query_from_iso3(db_client, 'NonEconomic', 'CAN')
+    table.get_pop_rank(db_client, 'NonEconomic', '2000', 'Canada')
 
 
 if __name__ == "__main__":
