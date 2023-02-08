@@ -141,7 +141,8 @@ def load_single(client):
     if len(key) == 3:
         key = table.query_from_iso3(client, table_name, key.upper())
 
-    key = key.capitalize()
+    key = key.title()
+
     try:
         cur_data = table.query_data(client, table_name, key)
     except:

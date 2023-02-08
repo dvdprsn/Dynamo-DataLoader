@@ -3,7 +3,7 @@ import table
 
 
 def gen_single_report(client, country):
-    country = country.capitalize()
+    country = country.title()
     resp = table.query_data(client, 'NonEconomic', country)
     data = gen_pop_table(client, country)
     print(f"-==-{country}-==-\n{resp['OfficialName']}")
@@ -13,9 +13,10 @@ def gen_single_report(client, country):
     print(f"Offical Languages: {resp['Languages']}")
     print(f"Capital City: {resp['Capital']}")
 
-    print('-----Population-----')
+    print('-----Population Data-----')
     print(tabulate(data, headers=[
           'Year', 'Population', 'Rank', 'Population Density', 'Rank']))
+    print('-----Economic Data------')
 
 
 def gen_year_report(client, year):
@@ -24,7 +25,6 @@ def gen_year_report(client, year):
 
 def year_range(client, table, country):
     table = client.Table(table)
-
     resp = list(table.get_item(Key={'CountryName': country})['Item'].keys())
     resp = [int(i) for i in resp if i.isdigit()]
     resp.sort()

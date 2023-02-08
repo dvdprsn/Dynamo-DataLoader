@@ -7,15 +7,16 @@ import reports
 def main():
     db_client = aws_client.create_client()
 
+    # TODO: Change init_tables to only load keys and load un list with load() func
+
+    # create the tables and init the keys
     # table.init_tables(db_client, 'data/un_shortlist.csv')
+    # Load all provided CSVs from the data folder
     # loaddata.load(db_client)
-    # table.gen_pop_table(db_client, 'NonEconomic', 'Canada')
+    # Add a single data entry to a table
     # loaddata.load_single(db_client)
-    reports.gen_single_report(db_client, 'Canada')
+    reports.gen_single_report(db_client, 'Cook Islands')
 
 
-    # for building tables
-    # If there are no previous rows and row empty dont show
-    # If there are no additional rows and row empty dont show
 if __name__ == "__main__":
     main()
