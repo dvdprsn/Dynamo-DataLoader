@@ -16,11 +16,48 @@ def gen_single_report(client, country):
     print('-----Population-----')
     print(tabulate(data, headers=[
           'Year', 'Population', 'Rank', 'Population Density', 'Rank']))
-    pass
 
 
 def gen_year_report(client, year):
     pass
+
+
+def year_range(client, table, country):
+    table = client.Table(table)
+
+    resp = list(table.get_item(Key={'CountryName': country})['Item'].keys())
+    resp = [int(i) for i in resp if i.isdigit()]
+    resp.sort()
+    return resp
+
+
+def top_def_list(client, year):
+    table = client.Table('NonEconomic')
+    resp = table.scan(ProjectionExpression='CountryName, #attr1, #attr2',
+                      ExpressionAttributeNames={'#attr1': year, '#attr2': 'Area'})
+    items = resp['Items']
+    items.sort(key=lambda x: x[year]/x['Area'], reverse=True)
+    return items
+
+
+def top_pop_list(client, year):
+    table = client.Table('NonEconomic')
+    resp = table.scan(ProjectionExpression='CountryName, #attr1',
+                      ExpressionAttributeNames={'#attr1': year})
+    items = resp['Items']
+
+    # Get countries ranking for population
+    items.sort(key=lambda x: x[year], reverse=True)
+    return items
+
+
+def top_area_list(client):
+    table = client.Table('NonEconomic')
+    resp = table.scan(ProjectionExpression='CountryName, #attr2',
+                      ExpressionAttributeNames={'#attr2': 'Area'})
+    items = resp['Items']
+    items.sort(key=lambda x: x['Area'], reverse=True)
+    return items
 
 
 def get_area_rank(client, country):
@@ -54,7 +91,8 @@ def get_pop_rank(client, year, country):
     resp = table.scan(ProjectionExpression='CountryName, #attr1, #attr2',
                       ExpressionAttributeNames={'#attr1': year, '#attr2': 'Area'})
     items = resp['Items']
-
+    # Filter out countries if they do not have a data entry for the given year (Not empty - just none existent)
+    items = [key for key in items if year in key]
     # Get countries ranking for population
     items.sort(key=lambda x: x[year], reverse=True)
     poprank = -1
@@ -80,9 +118,13 @@ def get_pop_rank(client, year, country):
 
 def gen_pop_table(client, country):
     outputTable = []
-    for year in range(1970, 2019 + 1):
-        out = get_pop_rank(client, str(year), country)
-        outputTable.append(out)
+    years = year_range(client, 'NonEconomic', country)
+    for year in range(years[0], years[-1] + 1):
+        # Only add an entry if there exists a data entry for the given year
+        # Not an empty data entry - this filters missing key
+        if year in years:
+            out = get_pop_rank(client, str(year), country)
+            outputTable.append(out)
     while '-1' in outputTable[0]:
         outputTable.pop(0)
     while '-1' in outputTable[-1]:
