@@ -1,5 +1,5 @@
-import csv
 from boto3.dynamodb.conditions import Attr
+import loaddata
 
 
 def create(client, dict_config):
@@ -18,63 +18,65 @@ def delete(client, table_name):
     print("Table Deleted")
 
 
-def bulk_load_data(client, table_name, file):
-    table = client.Table(table_name)
-    with open(file, newline='') as csvfile:
-        reader = csv.DictReader(csvfile)
-        with table.batch_writer() as batch:
-            for row in reader:
-                batch.put_item(
-                    Item={
-                        'ISO3': row['ISO3'],
-                        'CountryName': row['Country Name'],
-                        'Area': row['Area']
-                    }
-                )
-    print("Data loaded successfully")
-
-
-def bulk_new_data(client, table_name, file):
-    with open(file, 'r', encoding='utf-8-sig') as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            if 'Country' in row:
-                row['Country Name'] = row.pop('Country')
-            if None in row and 'Languages' in row:
-                row[None].append(str(row['Languages']))
-                row['Languages'] = ', '.join(row[None])
-                row.pop(None)
-            for key in row:
-                if not key == 'Country Name':
-                    update_col(client, table_name,
-                               row['Country Name'], key.replace(" ", ""), row[key])
-
-
-def update_col(client, table_name, key, col_name, col_data):
-    table = client.Table(table_name)
-
-    table.update_item(
-        Key={
-            'CountryName': key
-        },
-        UpdateExpression='SET #attr1 = :val1',
-        ExpressionAttributeNames={
-            '#attr1': col_name
-        },
-        ExpressionAttributeValues={
-            ':val1': col_data
+def create_nonecon(client, file):
+    params = {
+        'TableName': 'NonEconomic',
+        'KeySchema': [
+            {'AttributeName': 'CountryName', 'KeyType': 'HASH'},
+        ],
+        'AttributeDefinitions': [
+            {'AttributeName': 'CountryName', 'AttributeType': 'S'},
+        ],
+        'ProvisionedThroughput': {
+            'ReadCapacityUnits': 10,
+            'WriteCapacityUnits': 10
         }
-    )
+    }
+    table = client.create_table(**params)
+    print("Creating noneconomic table...")
+    table.wait_until_exists()
+    print("Table Created!")
+    # print('init table')
+    loaddata.init_table(client, 'NonEconomic', file)
+
+
+def create_econ(client, file):
+    params = {
+        'TableName': 'Economic',
+        'KeySchema': [
+            {'AttributeName': 'CountryName', 'KeyType': 'HASH'},
+        ],
+        'AttributeDefinitions': [
+            {'AttributeName': 'CountryName', 'AttributeType': 'S'},
+        ],
+        'ProvisionedThroughput': {
+            'ReadCapacityUnits': 10,
+            'WriteCapacityUnits': 10
+        }
+    }
+    table = client.create_table(**params)
+    print("Creating economic table...")
+    table.wait_until_exists()
+    print("Table created!")
+    # print('init table')
+    loaddata.init_table(client, 'Economic', file)
+
+
+def init_tables(client, file):
+    try:
+        create_nonecon(client, file)
+    except:
+        print("Unable to create non economic table!")
+    try:
+        create_econ(client, file)
+    except:
+        print("Unable to create economic table")
 
 
 def query_data(client, table_name, key):
     table = client.Table(table_name)
 
-    response = table.get_item(
-        Key={
-            'CountryName': key
-        }
-    )
+    response = table.get_item(Key={'CountryName': key})
     item = response.get('Item')
     if item:
         print(item)
@@ -107,25 +109,36 @@ def get_pop_rank(client, table_name, year, country):
     table = client.Table(table_name)
 
     resp = table.get_item(Key={'CountryName': country})
+    pop = 0
+    try:
+        pop = resp['Item'][year]
+    except:
+        pass
     # Retrieve only the country name and the population for the given year
     resp = table.scan(ProjectionExpression='CountryName, #attr1',
                       ExpressionAttributeNames={'#attr1': year})
     items = resp['Items']
-    items = [{'CountryName': item['CountryName'],
-              year: int(item[year])} for item in items if item[year]]
 
-    # https://stackoverflow.com/questions/3766633/how-to-sort-with-lambda-in-python
     items.sort(key=lambda x: x[year], reverse=True)
     rank = -1
     for i, item in enumerate(items):
         if item['CountryName'] == country:
+            if item[year] == -1:
+                rank = -1
+                break
             rank = i + 1
             break
-
-    print(f"rank: {rank}")
-    # print(items)
+    return f"year: {year}, pop: {pop}, rank: {rank}"
 
 
 def gen_pop_table(client, table_name, country):
-    for year in range(1971, 2019 + 1):
-        get_pop_rank(client, table_name, str(year), country)
+    outputTable = []
+    for year in range(1970, 2019 + 1):
+        out = get_pop_rank(client, table_name, str(year), country)
+        outputTable.append(out)
+    while '-1' in outputTable[0]:
+        outputTable.pop(0)
+    while '-1' in outputTable[-1]:
+        outputTable.pop()
+    for elem in outputTable:
+        print(elem)
