@@ -21,6 +21,12 @@ def gen_single_report(client, country):
           'Year', 'Population', 'Rank', 'Population Density', 'Rank']))
     print('-----Economic Data------')
 
+    resp = table.query_data(client, ECON, country)
+    data = gen_gdp_table(client, country)
+    print(f"Currency: {resp['Currency']}")
+    print("-------------")
+    print(tabulate(data, headers=['year', 'GDPPC', 'Rank']))
+
 
 def gen_year_report(client, year):
     pass
@@ -107,9 +113,9 @@ def get_pop_rank(client, year, country):
     poprank = -1
     for i, item in enumerate(items):
         if item['CountryName'] == country:
-            if item[year] == -1:
-                poprank = -1
-                break
+            # if item[year] == -1:
+            #     poprank = -1
+            #     break
             poprank = i + 1
             break
 
@@ -117,9 +123,9 @@ def get_pop_rank(client, year, country):
     denrank = -1
     for i, item in enumerate(items):
         if item['CountryName'] == country:
-            if item[year] == -1:
-                denrank = -1
-                break
+            # if item[year] == -1:
+            #     denrank = -1
+            #     break
             denrank = i+1
             break
     return [year, str(pop), poprank, str(round(popden, 2)), denrank]
@@ -133,6 +139,52 @@ def gen_pop_table(client, country):
         # Not an empty data entry - this filters missing key
         # if year in years:
         out = get_pop_rank(client, str(year), country)
+        outputTable.append(out)
+    while None in outputTable[0]:
+        outputTable.pop(0)
+    while None in outputTable[-1]:
+        outputTable.pop()
+    # for elem in outputTable:
+    #     print(elem)
+    return outputTable
+
+
+def get_gdp_rank(client, year, country):
+    table = client.Table(ECON)
+
+    resp = table.get_item(Key={'CountryName': country})
+    gdp = 0
+
+    try:
+        gdp = resp['Item'][year]
+    except:
+        return [year, None, None, None, None]
+
+    # Retrieve only the country name and the population for the given year
+    resp = table.scan(ProjectionExpression='CountryName, #attr1',
+                      ExpressionAttributeNames={'#attr1': year})
+    items = resp['Items']
+    # Filter out countries if they do not have a data entry for the given year (Not empty - just none existent)
+    items = [key for key in items if year in key]
+    # Get countries ranking for population
+    items.sort(key=lambda x: x[year], reverse=True)
+    gdprank = -1
+    for i, item in enumerate(items):
+        if item['CountryName'] == country:
+            gdprank = i + 1
+            break
+    return [year, str(gdp), str(gdprank)]
+
+
+def gen_gdp_table(client, country):
+
+    outputTable = []
+    years = year_range(client, ECON, country)
+    for year in range(years[0], years[-1] + 1):
+        # Only add an entry if there exists a data entry for the given year
+        # Not an empty data entry - this filters missing key
+        # if year in years:
+        out = get_gdp_rank(client, str(year), country)
         outputTable.append(out)
     while None in outputTable[0]:
         outputTable.pop(0)
