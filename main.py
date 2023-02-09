@@ -22,7 +22,7 @@ def main():
     # Add a single data entry to a table
     # loaddata.load_single(db_client)
     # reports.gen_single_report(db_client, 'Canada')
-    reports.build_single(db_client, 'Cook Islands')
+    reports.pdf_single(db_client, 'Brazil')
 
 
 if __name__ == "__main__":

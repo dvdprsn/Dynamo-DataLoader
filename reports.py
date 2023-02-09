@@ -8,7 +8,7 @@ NONECON = 'dpears04_NonEconomic'
 ECON = 'dpears04_Economic'
 
 
-def build_single(client, country):
+def pdf_single(client, country):
     country = country.title()
     resp = table.query_data(client, NONECON, country)
     data = gen_pop_table(client, country)
@@ -61,7 +61,7 @@ def build_single(client, country):
     my_doc.build(flowables)
 
 
-def gen_single_report(client, country):
+def ascii_single(client, country):
     country = country.title()
     resp = table.query_data(client, NONECON, country)
     data = gen_pop_table(client, country)
