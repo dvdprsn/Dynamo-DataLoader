@@ -8,6 +8,11 @@ def main():
     db_client = aws_client.create_client()
 
     # TODO: Change init_tables to only load keys and load un list with load() func
+    # TODO: Change table names to dpears04_NonEconomic!
+    # TODO: Ability to add new country
+    # TODO: Delete single record
+    # TODO: Function to build the decade data table - for each country create a list with its name and 10 years of data
+    # TODO:
 
     # create the tables and init the keys
     # table.init_tables(db_client, 'data/un_shortlist.csv')
