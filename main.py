@@ -2,11 +2,12 @@ import aws_client
 import table
 import loaddata
 import reports
+import pdf_builder
 
 
 def main():
     db_client = aws_client.create_client()
-
+    pdf_builder.build(reports.gen_pop_table(db_client, 'Canada'))
     # TODO: Change init_tables to only load keys and load un list with load() func
     # TODO: Change table names to dpears04_NonEconomic!
     # TODO: Ability to add new country
@@ -22,7 +23,7 @@ def main():
     # loaddata.load(db_client)
     # Add a single data entry to a table
     # loaddata.load_single(db_client)
-    reports.gen_single_report(db_client, 'Canada')
+    # reports.gen_single_report(db_client, 'Canada')
 
 
 if __name__ == "__main__":
