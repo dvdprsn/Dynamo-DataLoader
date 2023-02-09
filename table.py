@@ -1,6 +1,9 @@
 from boto3.dynamodb.conditions import Attr
 import loaddata
 
+NONECON = 'dpears04_NonEconomic'
+ECON = 'dpears04_Economic'
+
 
 def create(client, dict_config):
     table = client.create_table(**dict_config)
@@ -20,7 +23,7 @@ def delete(client, table_name):
 
 def create_nonecon(client, file):
     params = {
-        'TableName': 'NonEconomic',
+        'TableName': NONECON,
         'KeySchema': [
             {'AttributeName': 'CountryName', 'KeyType': 'HASH'},
         ],
@@ -37,12 +40,12 @@ def create_nonecon(client, file):
     table.wait_until_exists()
     print("Table Created!")
     # print('init table')
-    loaddata.init_table(client, 'NonEconomic', file)
+    loaddata.init_table(client, NONECON, file)
 
 
 def create_econ(client, file):
     params = {
-        'TableName': 'Economic',
+        'TableName': ECON,
         'KeySchema': [
             {'AttributeName': 'CountryName', 'KeyType': 'HASH'},
         ],
@@ -59,7 +62,7 @@ def create_econ(client, file):
     table.wait_until_exists()
     print("Table created!")
     # print('init table')
-    loaddata.init_table(client, 'Economic', file)
+    loaddata.init_table(client, ECON, file)
 
 
 def init_tables(client, file):

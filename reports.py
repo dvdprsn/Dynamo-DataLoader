@@ -1,10 +1,13 @@
 from tabulate import tabulate
 import table
 
+NONECON = 'dpears04_NonEconomic'
+ECON = 'dpears04_Economic'
+
 
 def gen_single_report(client, country):
     country = country.title()
-    resp = table.query_data(client, 'NonEconomic', country)
+    resp = table.query_data(client, NONECON, country)
     data = gen_pop_table(client, country)
     print(f"-==-{country}-==-\n{resp['OfficialName']}")
     print(
@@ -32,7 +35,7 @@ def year_range(client, table, country):
 
 
 def top_def_list(client, year):
-    table = client.Table('NonEconomic')
+    table = client.Table(NONECON)
     resp = table.scan(ProjectionExpression='CountryName, #attr1, #attr2',
                       ExpressionAttributeNames={'#attr1': year, '#attr2': 'Area'})
     items = resp['Items']
@@ -41,7 +44,7 @@ def top_def_list(client, year):
 
 
 def top_pop_list(client, year):
-    table = client.Table('NonEconomic')
+    table = client.Table(NONECON)
     resp = table.scan(ProjectionExpression='CountryName, #attr1',
                       ExpressionAttributeNames={'#attr1': year})
     items = resp['Items']
@@ -52,7 +55,7 @@ def top_pop_list(client, year):
 
 
 def top_area_list(client):
-    table = client.Table('NonEconomic')
+    table = client.Table(NONECON)
     resp = table.scan(ProjectionExpression='CountryName, #attr2',
                       ExpressionAttributeNames={'#attr2': 'Area'})
     items = resp['Items']
@@ -61,7 +64,7 @@ def top_area_list(client):
 
 
 def get_area_rank(client, country):
-    table = client.Table('NonEconomic')
+    table = client.Table(NONECON)
     resp = table.scan(ProjectionExpression='CountryName, #attr2',
                       ExpressionAttributeNames={'#attr2': 'Area'})
     items = resp['Items']
@@ -76,17 +79,23 @@ def get_area_rank(client, country):
 
 
 def get_pop_rank(client, year, country):
-    table = client.Table('NonEconomic')
+    table = client.Table(NONECON)
 
     resp = table.get_item(Key={'CountryName': country})
-    pop = -1
+    pop = 0
     area = -1
     try:
         pop = resp['Item'][year]
+    except:
+        return [year, None, None, None, None]
+    try:
         area = resp['Item']['Area']
     except:
-        pass
+        # If change data to blank could just return a dummy list manually created
+        return [year, None, None, None, None]
+
     popden = pop/area
+
     # Retrieve only the country name and the population for the given year
     resp = table.scan(ProjectionExpression='CountryName, #attr1, #attr2',
                       ExpressionAttributeNames={'#attr1': year, '#attr2': 'Area'})
@@ -118,16 +127,16 @@ def get_pop_rank(client, year, country):
 
 def gen_pop_table(client, country):
     outputTable = []
-    years = year_range(client, 'NonEconomic', country)
+    years = year_range(client, NONECON, country)
     for year in range(years[0], years[-1] + 1):
         # Only add an entry if there exists a data entry for the given year
         # Not an empty data entry - this filters missing key
-        if year in years:
-            out = get_pop_rank(client, str(year), country)
-            outputTable.append(out)
-    while '-1' in outputTable[0]:
+        # if year in years:
+        out = get_pop_rank(client, str(year), country)
+        outputTable.append(out)
+    while None in outputTable[0]:
         outputTable.pop(0)
-    while '-1' in outputTable[-1]:
+    while None in outputTable[-1]:
         outputTable.pop()
     # for elem in outputTable:
     #     print(elem)

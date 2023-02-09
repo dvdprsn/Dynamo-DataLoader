@@ -2,6 +2,9 @@ import csv
 import os
 import table
 
+NONECON = 'dpears04_NonEconomic'
+ECON = 'dpears04_Economic'
+
 
 def update_col(client, table_name, key, col_name, col_data):
     table = client.Table(table_name)
@@ -43,14 +46,14 @@ def load_curpop(client, file):
         for row in reader:
             for key in row:
                 if not key == 'Country' and not key == 'Currency' and row[key]:
-                    update_col(client, 'NonEconomic',
+                    update_col(client, NONECON,
                                row['Country'], key.replace('Population ', ''), int(row[key]))
                 elif key == 'Currency':
-                    update_col(client, 'Economic',
+                    update_col(client, ECON,
                                row['Country'], key, row[key])
-                elif not row[key]:
-                    update_col(client, 'NonEconomic',
-                               row['Country'], key.replace('Population ', ''), -1)
+                # elif not row[key]:
+                #     update_col(client, NONECON,
+                #                row['Country'], key.replace('Population ', ''), -1)
 
 
 def load_capital(client, file):
@@ -59,7 +62,7 @@ def load_capital(client, file):
         for row in reader:
             for key in row:
                 if not key == 'Country Name' and not key == 'ISO3':
-                    update_col(client, 'NonEconomic',
+                    update_col(client, NONECON,
                                row['Country Name'], key, row[key])
 
 
@@ -69,11 +72,11 @@ def load_area(client, file):
         for row in reader:
             for key in row:
                 if not key == 'Country Name' and not key == 'ISO3' and row[key]:
-                    update_col(client, 'NonEconomic',
+                    update_col(client, NONECON,
                                row['Country Name'], key, int(row[key]))
-                elif not row[key]:
-                    update_col(client, 'NonEconomic',
-                               row['Country'], key.replace('Population ', ''), -1)
+                # elif not row[key]:
+                #     update_col(client, NONECON,
+                #                row['Country'], key.replace('Population ', ''), -1)
 
 
 def load_gdppc(client, file):
@@ -82,11 +85,11 @@ def load_gdppc(client, file):
         for row in reader:
             for key in row:
                 if not key == 'Country' and row[key]:
-                    update_col(client, 'Economic',
+                    update_col(client, ECON,
                                row['Country'], key, int(row[key]))
-                elif not row[key]:
-                    update_col(client, 'Economic',
-                               row['Country'], key.replace('Population ', ''), -1)
+                # elif not row[key]:
+                #     update_col(client, ECON,
+                #                row['Country'], key.replace('Population ', ''), -1)
 
 
 def load_langs(client, file):
@@ -99,7 +102,7 @@ def load_langs(client, file):
                 row.pop(None)
             for key in row:
                 if not key == 'Country Name':
-                    update_col(client, 'NonEconomic',
+                    update_col(client, NONECON,
                                row['Country Name'], key, row[key])
 
 
@@ -134,9 +137,9 @@ def load_single(client):
         inp = int(input("Select Table (1) NonEconomic (2) Economic > "))
     table_name = None
     if inp == 1:
-        table_name = 'NonEconomic'
+        table_name = NONECON
     elif inp == 2:
-        table_name = 'Economic'
+        table_name = ECON
     key = input("Enter Country Name or ISO3 > ")
     if len(key) == 3:
         key = table.query_from_iso3(client, table_name, key.upper())

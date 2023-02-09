@@ -12,7 +12,8 @@ def main():
     # TODO: Ability to add new country
     # TODO: Delete single record
     # TODO: Function to build the decade data table - for each country create a list with its name and 10 years of data
-    # TODO:
+    # TODO: Better error handling to prevent crashes
+    # TODO: Clean up print statements
 
     # create the tables and init the keys
     # table.init_tables(db_client, 'data/un_shortlist.csv')
