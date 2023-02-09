@@ -1,8 +1,64 @@
 from tabulate import tabulate
 import table
+from reportlab.platypus import SimpleDocTemplate, Table, Paragraph, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib import colors
 
 NONECON = 'dpears04_NonEconomic'
 ECON = 'dpears04_Economic'
+
+
+def build_single(client, country):
+    country = country.title()
+    resp = table.query_data(client, NONECON, country)
+    data = gen_pop_table(client, country)
+
+    grid = [('GRID', (0, 0), (-1, -1), 0.25, colors.black),
+            ('FONTNAME', (0, 0), (-1, -1), 'Courier-Bold')]
+    # Build title component
+    sample_style_sheet = getSampleStyleSheet()
+    flowables = []
+    my_doc = SimpleDocTemplate(f'{country}_report.pdf')
+    paragraph_1 = Paragraph(country, sample_style_sheet['Heading1'])
+    flowables.append(paragraph_1)
+    p2 = Paragraph(f"[Offical Name: {resp['OfficialName']}]")
+    flowables.append(p2)
+
+    # Build extra info table
+    areaTable = []
+    areaTable.append(
+        [f"Area: {resp['Area']} sq km ({get_area_rank(client, country)})"])
+    areaTable.append(
+        [f"Offical Languages: {resp['Languages']}\nCapital City: {resp['Capital']}"])
+    t = Table(areaTable, style=TableStyle(grid))
+    flowables.append(t)
+
+    # Reset Grid style
+    grid = [('GRID', (0, 0), (-1, -1), 0.25, colors.black),
+            ('FONTNAME', (0, 0), (-1, 0), 'Courier-Bold')]
+    # Build non economic table component
+    p2 = Paragraph('Population', sample_style_sheet['Heading2'])
+    flowables.append(p2)
+    tH = ['Year', 'Population', 'Rank', 'Population Density', 'Rank']
+    data.insert(0, tH)
+    t = Table(data, repeatRows=1, style=TableStyle(grid))
+    flowables.append(t)
+
+    # Economic Section
+    resp = table.query_data(client, ECON, country)
+    data = gen_gdp_table(client, country)
+    # Economic Header
+    p2 = Paragraph('Economic Data', sample_style_sheet['Heading2'])
+    flowables.append(p2)
+    p2 = Paragraph(f"Currency: {resp['Currency']}")
+    flowables.append(p2)
+    # Build Economic Data Table
+    tH = ['Year', 'GDPPC', 'Rank']
+    data.insert(0, tH)
+    t = Table(data, repeatRows=1, style=TableStyle(grid))
+    flowables.append(t)
+
+    my_doc.build(flowables)
 
 
 def gen_single_report(client, country):
