@@ -64,6 +64,7 @@ def pdf_single(client, country):
 def ascii_single(client, country):
     country = country.title()
     resp = table.query_data(client, NONECON, country)
+
     data = gen_pop_table(client, country)
     print(f"-==-{country}-==-\n{resp['OfficialName']}")
     print(
@@ -118,9 +119,7 @@ def ascii_year(client, year):
     print("\nGDP Per Capita for all countries")
     resp.sort(key=lambda x: x['CountryName'])
     for decade in decades:
-        for year in years:
-            if str(year)[2] == str(decade)[2]:
-                headers.append(str(year))
+        headers = [str(y) for y in years if str(y)[2] is str(decade)[2]]
         for elem in resp:
             ls.append(decade_list(elem, headers))
         print(f"\n{decade}'s Table")
@@ -134,12 +133,14 @@ def decade_list(country, years):
     toReturn = [country['CountryName']]
     for y in ls:
         toReturn.append(country[y])
+    if len(toReturn) == 1:
+        pass
+        # Just name in list dont return
     return toReturn
 
 
-def year_range(client, table, country):
-    table = client.Table(table)
-    resp = list(table.get_item(Key={'CountryName': country})['Item'].keys())
+def year_range(items, country):
+    resp = [c for c in items if c['CountryName'] == country][0]
     resp = [int(i) for i in resp if i.isdigit()]
     resp.sort()
     return resp
@@ -189,93 +190,70 @@ def get_area_rank(client, country):
     return arearank
 
 
-def get_pop_rank(client, year, country):
-    table = client.Table(NONECON)
-
-    resp = table.get_item(Key={'CountryName': country})
+def get_pop_rank(items, year, country):
+    resp = [c for c in items if c['CountryName'] == country][0]
     pop = 0
     area = -1
     try:
-        pop = resp['Item'][year]
+        pop = resp[year]
     except:
         return [year, None, None, None, None]
     try:
-        area = resp['Item']['Area']
+        area = resp['Area']
     except:
-        # If change data to blank could just return a dummy list manually created
         return [year, None, None, None, None]
 
     popden = pop/area
-
-    # Retrieve only the country name and the population for the given year
-    resp = table.scan(ProjectionExpression='CountryName, #attr1, #attr2',
-                      ExpressionAttributeNames={'#attr1': year, '#attr2': 'Area'})
-    items = resp['Items']
     # Filter out countries if they do not have a data entry for the given year (Not empty - just none existent)
-    items = [key for key in items if year in key]
+    item = [key for key in items if year in key]
     # Get countries ranking for population
-    items.sort(key=lambda x: x[year], reverse=True)
+    item.sort(key=lambda x: x[year], reverse=True)
     poprank = -1
-    for i, item in enumerate(items):
-        if item['CountryName'] == country:
-            # if item[year] == -1:
-            #     poprank = -1
-            #     break
+    for i, ite in enumerate(item):
+        if ite['CountryName'] == country:
             poprank = i + 1
             break
 
-    items.sort(key=lambda x: x[year]/x['Area'], reverse=True)
+    item.sort(key=lambda x: x[year]/x['Area'], reverse=True)
     denrank = -1
-    for i, item in enumerate(items):
-        if item['CountryName'] == country:
-            # if item[year] == -1:
-            #     denrank = -1
-            #     break
+    for i, ite in enumerate(item):
+        if ite['CountryName'] == country:
             denrank = i+1
             break
     return [year, str(pop), poprank, str(round(popden, 2)), denrank]
 
 
 def gen_pop_table(client, country):
+    table = client.Table(NONECON)
+    resp = table.scan()['Items']
     outputTable = []
-    years = year_range(client, NONECON, country)
+    years = year_range(resp, country)
     for year in range(years[0], years[-1] + 1):
-        # Only add an entry if there exists a data entry for the given year
-        # Not an empty data entry - this filters missing key
-        # if year in years:
-        out = get_pop_rank(client, str(year), country)
+        out = get_pop_rank(resp, str(year), country)
         outputTable.append(out)
     while None in outputTable[0]:
         outputTable.pop(0)
     while None in outputTable[-1]:
         outputTable.pop()
-    # for elem in outputTable:
-    #     print(elem)
     return outputTable
 
 
-def get_gdp_rank(client, year, country):
-    table = client.Table(ECON)
-
-    resp = table.get_item(Key={'CountryName': country})
+def get_gdp_rank(items, year, country):
+    resp = [c for c in items if c['CountryName'] == country][0]
     gdp = 0
 
     try:
-        gdp = resp['Item'][year]
+        gdp = resp[year]
     except:
         return [year, None, None, None, None]
 
-    # Retrieve only the country name and the population for the given year
-    resp = table.scan(ProjectionExpression='CountryName, #attr1',
-                      ExpressionAttributeNames={'#attr1': year})
-    items = resp['Items']
     # Filter out countries if they do not have a data entry for the given year (Not empty - just none existent)
-    items = [key for key in items if year in key]
+    item = [key for key in items if year in key]
     # Get countries ranking for population
-    items.sort(key=lambda x: x[year], reverse=True)
+    item.sort(key=lambda x: x[year], reverse=True)
     gdprank = -1
-    for i, item in enumerate(items):
-        if item['CountryName'] == country:
+    for i, ite in enumerate(item):
+        if ite['CountryName'] == country:
             gdprank = i + 1
             break
     return [year, str(gdp), str(gdprank)]
@@ -283,14 +261,17 @@ def get_gdp_rank(client, year, country):
 
 def gen_gdp_table(client, country):
 
+    table = client.Table(ECON)
+    resp = table.scan()['Items']
+
     # Only use one response here and pass in the return!
     outputTable = []
-    years = year_range(client, ECON, country)
+    years = year_range(resp, country)
     for year in range(years[0], years[-1] + 1):
         # Only add an entry if there exists a data entry for the given year
         # Not an empty data entry - this filters missing key
         # if year in years:
-        out = get_gdp_rank(client, str(year), country)
+        out = get_gdp_rank(resp, str(year), country)
         outputTable.append(out)
     while None in outputTable[0]:
         outputTable.pop(0)
