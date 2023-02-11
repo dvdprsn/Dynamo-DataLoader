@@ -85,31 +85,115 @@ def ascii_single(client, country):
     print(tabulate(data, headers=['year', 'GDPPC', 'Rank']))
 
 
+def pdf_global(client, year):
+    tableECON = client.Table(ECON)
+    respECON = tableECON.scan()['Items']
+
+    tableNON = client.Table(NONECON)
+    respNON = tableNON.scan()['Items']
+    # items = [key for key in respNON if year in key]
+    items = respNON
+
+    year = str(year)
+
+    grid = [('GRID', (0, 0), (-1, -1), 0.25, colors.black),
+            ('FONTNAME', (0, 0), (-1, 0), 'Courier-Bold')]
+    # Build title component
+    sample_style_sheet = getSampleStyleSheet()
+    flowables = []
+
+    my_doc = SimpleDocTemplate(f'{year}_global_report.pdf')
+    paragraph_1 = Paragraph("Global Report", sample_style_sheet['Heading1'])
+    flowables.append(paragraph_1)
+
+    p2 = Paragraph(f"Year: {year}")
+    flowables.append(p2)
+
+    p2 = Paragraph(f"Number of Countries: {len(respNON)}")
+    flowables.append(p2)
+
+    p2 = Paragraph(
+        f"Table of Countries Ranked by Population (largest to smallest)")
+    flowables.append(p2)
+
+    # POP Table
+    data = top_pop_list(year, items)
+    popTable = ['Country Name', 'Population', 'Rank']
+    data.insert(0, popTable)
+    t = Table(data, repeatRows=1, style=TableStyle(grid))
+    flowables.append(t)
+
+    # Area Table
+    p2 = Paragraph(
+        f"Table of Countries Ranked by Area (largest to smallest)")
+    flowables.append(p2)
+    data = top_area_list(items)
+    popTable = ['Country Name', 'Area', 'Rank']
+    data.insert(0, popTable)
+    t = Table(data, repeatRows=1, style=TableStyle(grid))
+    flowables.append(t)
+
+    # DEN Table
+    p2 = Paragraph(
+        f"Table of Countries Ranked by Density (largest to smallest)")
+    flowables.append(p2)
+    data = top_den_list(year, items)
+    popTable = ['Country Name', 'Density', 'Rank']
+    data.insert(0, popTable)
+    t = Table(data, repeatRows=1, style=TableStyle(grid))
+    flowables.append(t)
+
+    # List of all years within the table
+    p2 = Paragraph("GDP Per Capita for all Countries")
+    flowables.append(p2)
+    years = list(set([int(k)
+                 for d in respECON for k in d.keys() if k.isdigit()]))
+    decades = list(set([(year // 10) * 10 for year in years]))
+    decades.sort()
+    ls = []
+    headers = []
+    respECON.sort(key=lambda x: x['CountryName'])
+    for decade in decades:
+        headers = [str(y) for y in years if str(y)[2] is str(decade)[2]]
+        for elem in respECON:
+            ls.append(decade_list(elem, headers))
+        p2 = Paragraph(f"{decade}'s Table")
+        flowables.append(p2)
+        headers.insert(0, 'Country Name')
+        ls.insert(0, headers)
+        t = Table(ls, repeatRows=1, style=TableStyle(grid))
+        flowables.append(t)
+        headers = []
+        ls = []
+
+    my_doc.build(flowables)
+
+
 def ascii_year(client, year):
     tableECON = client.Table(ECON)
     resp = tableECON.scan()['Items']
-    # year = str(year)
-    # table = client.Table(NONECON)
-    # respNon = table.scan(ProjectionExpression='CountryName, #attr1, #attr2',
-    #                      ExpressionAttributeNames={'#attr1': str(year), '#attr2': 'Area'})
-    # items = respNon['Items']
+    year = str(year)
+    table = client.Table(NONECON)
+    respNon = table.scan(ProjectionExpression='CountryName, #attr1, #attr2',
+                         ExpressionAttributeNames={'#attr1': str(year), '#attr2': 'Area'})
+    items = respNon['Items']
     # items = [key for key in items if year in key]
 
-    # print(f"Year: {year}")
-    # print(f"Number of countries: {len(items)}")
-    #
-    # print("Table of Countries Ranked by Population (largerst to smallest)")
-    # print(tabulate(top_pop_list(str(year), items), headers=[
-    #       'Country Name', 'Population', 'Rank']))
-    #
-    # print("\nTable of countries ranked by area (largest to smallest)")
-    # print(tabulate(top_area_list(items), headers=[
-    #       'Country Name', 'Area', 'Rank']))
-    #
-    # print("\nTable of Countries ranked by Density (largest to smallest)")
-    # print(tabulate(top_den_list(str(year), items), headers=[
-    #       'Country Name', 'Density', 'Rank']))
-    #
+    print(f"Year: {year}")
+    print(f"Number of countries: {len(items)}")
+
+    print("Table of Countries Ranked by Population (largerst to smallest)")
+    print(tabulate(top_pop_list(str(year), items), headers=[
+          'Country Name', 'Population', 'Rank']))
+
+    print("\nTable of countries ranked by area (largest to smallest)")
+    print(tabulate(top_area_list(items), headers=[
+          'Country Name', 'Area', 'Rank']))
+
+    print("\nTable of Countries ranked by Density (largest to smallest)")
+    print(tabulate(top_den_list(str(year), items), headers=[
+          'Country Name', 'Density', 'Rank']))
+
     # List of all years within the table
     years = list(set([int(k) for d in resp for k in d.keys() if k.isdigit()]))
     decades = list(set([(year // 10) * 10 for year in years]))
@@ -147,22 +231,22 @@ def year_range(items, country):
 
 
 def top_den_list(year, items):
-    # item = [key for key in items if year in key]
-    items.sort(key=lambda x: x[year]/x['Area'], reverse=True)
+    item = [key for key in items if year in key]
+    item.sort(key=lambda x: x[year]/x['Area'], reverse=True)
 
     top_list = []
-    for i, elem in enumerate(items):
+    for i, elem in enumerate(item):
         top_list.append(
             [elem['CountryName'], str(round(elem[year]/elem['Area'], 2)), i+1])
     return (top_list)
 
 
 def top_pop_list(year, items):
-    # item = [key for key in items if year in key]
-    items.sort(key=lambda x: x[year], reverse=True)
+    item = [key for key in items if year in key]
+    item.sort(key=lambda x: x[year], reverse=True)
 
     top_list = []
-    for i, elem in enumerate(items):
+    for i, elem in enumerate(item):
         top_list.append([elem['CountryName'], str(elem[year]), i+1])
     return (top_list)
 
@@ -260,23 +344,15 @@ def get_gdp_rank(items, year, country):
 
 
 def gen_gdp_table(client, country):
-
     table = client.Table(ECON)
     resp = table.scan()['Items']
-
-    # Only use one response here and pass in the return!
     outputTable = []
     years = year_range(resp, country)
     for year in range(years[0], years[-1] + 1):
-        # Only add an entry if there exists a data entry for the given year
-        # Not an empty data entry - this filters missing key
-        # if year in years:
         out = get_gdp_rank(resp, str(year), country)
         outputTable.append(out)
     while None in outputTable[0]:
         outputTable.pop(0)
     while None in outputTable[-1]:
         outputTable.pop()
-    # for elem in outputTable:
-    #     print(elem)
     return outputTable
