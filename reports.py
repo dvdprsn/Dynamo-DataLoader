@@ -84,8 +84,41 @@ def ascii_single(client, country):
     print(tabulate(data, headers=['year', 'GDPPC', 'Rank']))
 
 
-def gen_year_report(client, year):
-    pass
+def ascii_year(client, year):
+    # tableECON = client.Table(ECON)
+    # resp = tableECON.scan()['Items']
+    year = str(year)
+    table = client.Table(NONECON)
+    respNon = table.scan(ProjectionExpression='CountryName, #attr1, #attr2',
+                         ExpressionAttributeNames={'#attr1': str(year), '#attr2': 'Area'})
+    items = respNon['Items']
+    items = [key for key in items if year in key]
+
+    # List of all years within the table
+    # years = list(set([int(k) for d in resp for k in d.keys() if k.isdigit()]))
+    # print(years)
+    # decades = list(set([(year // 10) * 10 for year in years]))
+    # decades.sort()
+    # print(decades)
+
+    print(f"Year: {year}")
+    print(f"Number of countries: {len(items)}")
+
+    print("Table of Countries Ranked by Population (largerst to smallest)")
+    print(tabulate(top_pop_list(str(year), items), headers=[
+          'Country Name', 'Population', 'Rank']))
+
+    print("\nTable of countries ranked by area (largest to smallest)")
+    print(tabulate(top_area_list(items), headers=[
+          'Country Name', 'Area', 'Rank']))
+
+    print("\nTable of Countries ranked by Density (largest to smallest)")
+    print(tabulate(top_den_list(str(year), items), headers=[
+          'Country Name', 'Density', 'Rank']))
+
+    print("\nGDP Per Capita for all countries")
+    # for decade in decades:
+    #     print()
 
 
 def year_range(client, table, country):
@@ -96,33 +129,33 @@ def year_range(client, table, country):
     return resp
 
 
-def top_def_list(client, year):
-    table = client.Table(NONECON)
-    resp = table.scan(ProjectionExpression='CountryName, #attr1, #attr2',
-                      ExpressionAttributeNames={'#attr1': year, '#attr2': 'Area'})
-    items = resp['Items']
+def top_den_list(year, items):
+    # item = [key for key in items if year in key]
     items.sort(key=lambda x: x[year]/x['Area'], reverse=True)
-    return items
+
+    top_list = []
+    for i, elem in enumerate(items):
+        top_list.append(
+            [elem['CountryName'], str(round(elem[year]/elem['Area'], 2)), i+1])
+    return (top_list)
 
 
-def top_pop_list(client, year):
-    table = client.Table(NONECON)
-    resp = table.scan(ProjectionExpression='CountryName, #attr1',
-                      ExpressionAttributeNames={'#attr1': year})
-    items = resp['Items']
-
-    # Get countries ranking for population
+def top_pop_list(year, items):
+    # item = [key for key in items if year in key]
     items.sort(key=lambda x: x[year], reverse=True)
-    return items
+
+    top_list = []
+    for i, elem in enumerate(items):
+        top_list.append([elem['CountryName'], str(elem[year]), i+1])
+    return (top_list)
 
 
-def top_area_list(client):
-    table = client.Table(NONECON)
-    resp = table.scan(ProjectionExpression='CountryName, #attr2',
-                      ExpressionAttributeNames={'#attr2': 'Area'})
-    items = resp['Items']
+def top_area_list(items):
     items.sort(key=lambda x: x['Area'], reverse=True)
-    return items
+    top_list = []
+    for i, elem in enumerate(items):
+        top_list.append([elem['CountryName'], str(elem['Area']), i+1])
+    return (top_list)
 
 
 def get_area_rank(client, country):
@@ -234,6 +267,7 @@ def get_gdp_rank(client, year, country):
 
 def gen_gdp_table(client, country):
 
+    # Only use one response here and pass in the return!
     outputTable = []
     years = year_range(client, ECON, country)
     for year in range(years[0], years[-1] + 1):

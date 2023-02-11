@@ -22,7 +22,8 @@ def main():
     # Add a single data entry to a table
     # loaddata.load_single(db_client)
     # reports.gen_single_report(db_client, 'Canada')
-    reports.pdf_single(db_client, 'Brazil')
+    # reports.pdf_single(db_client, 'China')
+    reports.ascii_year(db_client, 2019)
 
 
 if __name__ == "__main__":
