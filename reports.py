@@ -85,40 +85,56 @@ def ascii_single(client, country):
 
 
 def ascii_year(client, year):
-    # tableECON = client.Table(ECON)
-    # resp = tableECON.scan()['Items']
-    year = str(year)
-    table = client.Table(NONECON)
-    respNon = table.scan(ProjectionExpression='CountryName, #attr1, #attr2',
-                         ExpressionAttributeNames={'#attr1': str(year), '#attr2': 'Area'})
-    items = respNon['Items']
-    items = [key for key in items if year in key]
+    tableECON = client.Table(ECON)
+    resp = tableECON.scan()['Items']
+    # year = str(year)
+    # table = client.Table(NONECON)
+    # respNon = table.scan(ProjectionExpression='CountryName, #attr1, #attr2',
+    #                      ExpressionAttributeNames={'#attr1': str(year), '#attr2': 'Area'})
+    # items = respNon['Items']
+    # items = [key for key in items if year in key]
 
+    # print(f"Year: {year}")
+    # print(f"Number of countries: {len(items)}")
+    #
+    # print("Table of Countries Ranked by Population (largerst to smallest)")
+    # print(tabulate(top_pop_list(str(year), items), headers=[
+    #       'Country Name', 'Population', 'Rank']))
+    #
+    # print("\nTable of countries ranked by area (largest to smallest)")
+    # print(tabulate(top_area_list(items), headers=[
+    #       'Country Name', 'Area', 'Rank']))
+    #
+    # print("\nTable of Countries ranked by Density (largest to smallest)")
+    # print(tabulate(top_den_list(str(year), items), headers=[
+    #       'Country Name', 'Density', 'Rank']))
+    #
     # List of all years within the table
-    # years = list(set([int(k) for d in resp for k in d.keys() if k.isdigit()]))
-    # print(years)
-    # decades = list(set([(year // 10) * 10 for year in years]))
-    # decades.sort()
-    # print(decades)
-
-    print(f"Year: {year}")
-    print(f"Number of countries: {len(items)}")
-
-    print("Table of Countries Ranked by Population (largerst to smallest)")
-    print(tabulate(top_pop_list(str(year), items), headers=[
-          'Country Name', 'Population', 'Rank']))
-
-    print("\nTable of countries ranked by area (largest to smallest)")
-    print(tabulate(top_area_list(items), headers=[
-          'Country Name', 'Area', 'Rank']))
-
-    print("\nTable of Countries ranked by Density (largest to smallest)")
-    print(tabulate(top_den_list(str(year), items), headers=[
-          'Country Name', 'Density', 'Rank']))
-
+    years = list(set([int(k) for d in resp for k in d.keys() if k.isdigit()]))
+    decades = list(set([(year // 10) * 10 for year in years]))
+    decades.sort()
+    ls = []
+    headers = ['Country Name']
     print("\nGDP Per Capita for all countries")
-    # for decade in decades:
-    #     print()
+    resp.sort(key=lambda x: x['CountryName'])
+    for decade in decades:
+        for year in years:
+            if str(year)[2] == str(decade)[2]:
+                headers.append(str(year))
+        for elem in resp:
+            ls.append(decade_list(elem, headers))
+        print(f"\n{decade}'s Table")
+        print(tabulate(ls, headers=headers))
+        headers = ['Country Name']
+        ls = []
+
+
+def decade_list(country, years):
+    ls = [y for y in years if str(y).isdigit() and str(y) in country.keys()]
+    toReturn = [country['CountryName']]
+    for y in ls:
+        toReturn.append(country[y])
+    return toReturn
 
 
 def year_range(client, table, country):
