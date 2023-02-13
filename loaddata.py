@@ -6,6 +6,7 @@ NONECON = 'dpears04_NonEconomic'
 ECON = 'dpears04_Economic'
 
 
+# Add new data to the table without overwrites
 def add_col(client, table_name, key, col_name, col_data):
     table = client.Table(table_name)
 
@@ -28,6 +29,7 @@ def add_col(client, table_name, key, col_name, col_data):
         return
 
 
+# Overwrite data in the table - Only used for languages list which isnt an actual overwrite
 def update_col(client, table_name, key, col_name, col_data):
     table = client.Table(table_name)
 
@@ -45,6 +47,7 @@ def update_col(client, table_name, key, col_name, col_data):
     )
 
 
+# Add the initial list of countries from the UN file to the table
 def init_table(client, table_name, file):
     table = client.Table(table_name)
     with open(file, newline='') as csvfile:
@@ -58,6 +61,7 @@ def init_table(client, table_name, file):
                 )
 
 
+# Add the UN short list data to the table
 def load_un(client, file):
     with open(file, 'r', encoding='utf-8-sig') as csvfile:
         reader = csv.DictReader(csvfile)
