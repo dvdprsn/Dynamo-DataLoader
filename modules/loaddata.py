@@ -67,6 +67,7 @@ def load_un(client, file):
                     add_col(client, NONECON, row['Country Name'], key.replace(' ', ''), row[key])
 
 
+# Add curpop csv to table
 def load_curpop(client, file):
     with open(file, 'r', encoding='utf-8-sig') as csvfile:
         reader = csv.DictReader(csvfile)
@@ -77,6 +78,8 @@ def load_curpop(client, file):
                 elif key == 'Currency':
                     add_col(client, ECON, row['Country'], key, row[key])
 
+# Add capital csv data to table
+
 
 def load_capital(client, file):
     with open(file, 'r', encoding='utf-8-sig') as csvfile:
@@ -85,6 +88,8 @@ def load_capital(client, file):
             for key in row:
                 if not key == 'Country Name' and not key == 'ISO3' and row[key]:
                     add_col(client, NONECON, row['Country Name'], key, row[key])
+
+# Add area csv data to table
 
 
 def load_area(client, file):
@@ -95,6 +100,8 @@ def load_area(client, file):
                 if not key == 'Country Name' and not key == 'ISO3' and row[key]:
                     add_col(client, NONECON, row['Country Name'], key, int(row[key]))
 
+# Add GDPPC data to table
+
 
 def load_gdppc(client, file):
     with open(file, 'r', encoding='utf-8-sig') as csvfile:
@@ -103,6 +110,8 @@ def load_gdppc(client, file):
             for key in row:
                 if not key == 'Country' and row[key]:
                     add_col(client, ECON, row['Country'], key, int(row[key]))
+
+# Add languages csv data to table
 
 
 def load_langs(client, file):
@@ -116,6 +125,8 @@ def load_langs(client, file):
             for key in row:
                 if not key == 'Country Name' and not key == 'ISO3' and row[key]:
                     add_col(client, NONECON, row['Country Name'], key, row[key])
+
+# Scan data directory for csv files and add data from the recognized ones
 
 
 def load(client, dir):
@@ -142,6 +153,8 @@ def load(client, dir):
                 print('Loading UN data...')
                 load_un(client, f)
     print("Done!")
+
+# Console prompts for adding a single data point
 
 
 def load_single(client):
@@ -206,6 +219,7 @@ def load_single(client):
         except:
             print("Unable to add data")
         return
+
     try:
         if val.isdigit():
             val = int(val)
@@ -214,9 +228,12 @@ def load_single(client):
         print("Unable to add data")
 
 
+# Delete entire country row
 def delete_country(client, country, table):
     table = client.Table(table)
     table.delete_item(Key={'CountryName': country})
+
+# Delete single data entry
 
 
 def delete_entry(client, table_name, item, country):
@@ -230,6 +247,8 @@ def delete_entry(client, table_name, item, country):
         ExpressionAttributeNames={
             '#attr1': item
         })
+
+# Console prompts for data deletion
 
 
 def delete_data(client):
@@ -247,9 +266,11 @@ def delete_data(client):
             print("Item does not have an ISO3 value!")
             return
 
-    inp = input(
-        "Select Option (1) Delete entire country (2) Delete data entry in country > ")
+    inp = input("Select Option (1) Delete entire country (2) Delete data entry in country > ")
     if inp == '1':
+        inp = input("Are you sure (1) yes (2) no > ")
+        if inp != '1':
+            return
         try:
             delete_country(client, country_name, table_name)
         except:

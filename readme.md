@@ -201,7 +201,7 @@ Generally, this special format is identical to the files in `data/` but modified
 
 - Creating single country reports is limited to countries that have sufficient data to create the report. Sufficient means: Name, Official Name, Area, Languages, currency, and capital. The tables will be empty if there is no Population or Economic data.
 - Limited input validation for the interactive programs (1) or (2) selections. If it doesnt get a value it expects it will default to one of the options.
-- Limited output for success or failure to modify the table.
+- Limited output for success or failure on modify the table functions.
 - Blank rows will still be included in the GDPPC for all countries table in the global report. I have elected to handle it this way as not including am empty row
   tells the exact same information as it being there, that is, no data exists for this timeframe. But, for an analyst it enables seeing at a glance that for a given decade
   which countries do not have data.

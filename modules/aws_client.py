@@ -19,7 +19,6 @@ def create_client():
             region_name='ca-central-1'
         )
         db_client = session.resource('dynamodb')
-        # TODO Have some function call here that checks if connection worked
     except:
         print("Unable to create AWS session!")
         exit(0)
