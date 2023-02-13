@@ -1,14 +1,10 @@
 # CIS\*4010 Assignment 2 (DynamoDB)
 
-`
-
 David Pearson
 
 1050197
 
 dpears04@uoguelph.ca
-
-`
 
 ## Module Structure
 
@@ -38,6 +34,8 @@ dpears04@uoguelph.ca
 ├── readme.md
 └── requirements.txt
 ```
+
+- `add_data/` directory -> This contains the csv files for bulk appending NEW data to the tables. Included in the submission is two files to serve as an example for how this works and for format. This is explained further below
 
 - The main 3 functionalities we were tasked to implement have been divided into 3 seprate programs accordingly.
 - The program `create_load.py` should be executed first as this will create the tables and load them with the provided csv data.
@@ -174,10 +172,28 @@ Generally, this special format is identical to the files in `data/` but modified
 #### Through prompts (Easiest)
 
 - The program will prompt the user for various info to help build the data to be added.
+- If the user tries to add data that already exists in the table it will notify the user this is not possible.
+- If the user attempts to add a country that does not exist it will create that country in the indicated table.
+- The prompts only allow adding a single data point at a time, to add multiple, rerun this program
+- The program will ask the following
 
-### Deleting Single data point
+1. (1) Add or (2) delete data -> For these prompts enter 1 to add data
+2. Load data from (1) Prompts (2) add_data folder -> enter 1
+3. Select table (1) Non Economic (2) Economic -> enter 1 or 2
+4. Enter the country name or ISO3 value
+5. Enter attribute name -> This is a value such as the year for GDPPC or Pop depending on table, or Languages, Currency etc. (The heading value)
+6. Enter the data point to be added under the attribute value specified above
 
-### Deleting Country (row)
+### Deleting Data
+
+- This is handled through the `modify_data.py` program as well and it will prompt the user for deletion options.
+- The following prompts will appear
+
+1. (1) Add or (2) Delete data -> Enter 2
+2. (1) Economic or (2) Non Economic -> Enter 1 or 2 depending on the table
+3. Enter the country name or ISO3 the data is stored at
+4. You are now given the option to delete the entire country or just the single data point in the country -> select 1 or 2
+5. For single data point -> Enter attribute name where the data contained within should be deleted. For example 2019 for GDPPC or pop or languages, currency etc
 
 ## Limitations
 
