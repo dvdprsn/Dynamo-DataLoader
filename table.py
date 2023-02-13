@@ -61,7 +61,6 @@ def create_econ(client, file):
     print("Creating economic table...")
     table.wait_until_exists()
     print("Table created!")
-    # print('init table')
     loaddata.init_table(client, ECON, file)
 
 
@@ -83,13 +82,12 @@ def query_data(client, table_name, key):
     item = response.get('Item')
     if item:
         return item
-        # print(f"{item['ISO3']} {item['CountryName']} {item['Area']}")
     else:
         print("No item found!")
 
 
 def query_from_iso3(client, table_name, key):
-    table = client.Table(table_name)
+    table = client.Table(NONECON)
     response = table.scan(
         FilterExpression=Attr('ISO3').eq(key)
     )

@@ -21,15 +21,23 @@ def pdf_single(client, country):
     my_doc = SimpleDocTemplate(f'{country}_report.pdf')
     paragraph_1 = Paragraph(country, sample_style_sheet['Heading1'])
     flowables.append(paragraph_1)
-    p2 = Paragraph(f"[Offical Name: {resp['OfficialName']}]")
+    try:
+        p2 = Paragraph(f"[Offical Name: {resp['OfficialName']}]")
+    except:
+        print("Missing data (official name), unable to generate the report!")
+        return
     flowables.append(p2)
 
     # Build extra info table
     areaTable = []
-    areaTable.append(
-        [f"Area: {resp['Area']} sq km ({get_area_rank(client, country)})"])
-    areaTable.append(
-        [f"Offical Languages: {resp['Languages']}\nCapital City: {resp['Capital']}"])
+    try:
+        areaTable.append(
+            [f"Area: {resp['Area']} sq km ({get_area_rank(client, country)})"])
+        areaTable.append(
+            [f"Offical Languages: {resp['Languages']}\nCapital City: {resp['Capital']}"])
+    except:
+        print("Missing Data (area, captial, languages), unable to generate the report!")
+        return
     t = Table(areaTable, style=TableStyle(grid))
     flowables.append(t)
 
@@ -50,7 +58,11 @@ def pdf_single(client, country):
     # Economic Header
     p2 = Paragraph('Economic Data', sample_style_sheet['Heading2'])
     flowables.append(p2)
-    p2 = Paragraph(f"Currency: {resp['Currency']}")
+    try:
+        p2 = Paragraph(f"Currency: {resp['Currency']}")
+    except:
+        print("Unable to generate the report, missing data (currency)!")
+        return
     flowables.append(p2)
     # Build Economic Data Table
     tH = ['Year', 'GDPPC', 'Rank']
@@ -91,8 +103,7 @@ def pdf_global(client, year):
 
     tableNON = client.Table(NONECON)
     respNON = tableNON.scan()['Items']
-    # items = [key for key in respNON if year in key]
-    items = respNON
+    items = [key for key in respNON if year in key and 'Area' in key]
 
     year = str(year)
 
@@ -106,14 +117,14 @@ def pdf_global(client, year):
     paragraph_1 = Paragraph("Global Report", sample_style_sheet['Heading1'])
     flowables.append(paragraph_1)
 
-    p2 = Paragraph(f"Year: {year}")
+    p2 = Paragraph(f"Year: {year}", sample_style_sheet['Heading3'])
     flowables.append(p2)
 
-    p2 = Paragraph(f"Number of Countries: {len(respNON)}")
+    p2 = Paragraph(f"Number of Countries: {len(items)}")
     flowables.append(p2)
 
     p2 = Paragraph(
-        f"Table of Countries Ranked by Population (largest to smallest)")
+        f"Table of Countries Ranked by Population (largest to smallest)", sample_style_sheet['Heading3'])
     flowables.append(p2)
 
     # POP Table
@@ -125,7 +136,7 @@ def pdf_global(client, year):
 
     # Area Table
     p2 = Paragraph(
-        f"Table of Countries Ranked by Area (largest to smallest)")
+        f"Table of Countries Ranked by Area (largest to smallest)", sample_style_sheet['Heading3'])
     flowables.append(p2)
     data = top_area_list(items)
     popTable = ['Country Name', 'Area', 'Rank']
@@ -135,7 +146,7 @@ def pdf_global(client, year):
 
     # DEN Table
     p2 = Paragraph(
-        f"Table of Countries Ranked by Density (largest to smallest)")
+        f"Table of Countries Ranked by Density (largest to smallest)", sample_style_sheet['Heading3'])
     flowables.append(p2)
     data = top_den_list(year, items)
     popTable = ['Country Name', 'Density', 'Rank']
@@ -144,7 +155,8 @@ def pdf_global(client, year):
     flowables.append(t)
 
     # List of all years within the table
-    p2 = Paragraph("GDP Per Capita for all Countries")
+    p2 = Paragraph("GDP Per Capita for all Countries",
+                   sample_style_sheet['Heading3'])
     flowables.append(p2)
     years = list(set([int(k)
                  for d in respECON for k in d.keys() if k.isdigit()]))
@@ -157,7 +169,7 @@ def pdf_global(client, year):
         headers = [str(y) for y in years if str(y)[2] is str(decade)[2]]
         for elem in respECON:
             ls.append(decade_list(elem, headers))
-        p2 = Paragraph(f"{decade}'s Table")
+        p2 = Paragraph(f"{decade}'s Table", sample_style_sheet['Heading3'])
         flowables.append(p2)
         headers.insert(0, 'Country Name')
         ls.insert(0, headers)
@@ -177,7 +189,7 @@ def ascii_year(client, year):
     respNon = table.scan(ProjectionExpression='CountryName, #attr1, #attr2',
                          ExpressionAttributeNames={'#attr1': str(year), '#attr2': 'Area'})
     items = respNon['Items']
-    # items = [key for key in items if year in key]
+    items = [key for key in items if year in key and 'Area' in key]
 
     print(f"Year: {year}")
     print(f"Number of countries: {len(items)}")
@@ -213,10 +225,14 @@ def ascii_year(client, year):
 
 
 def decade_list(country, years):
-    ls = [y for y in years if str(y).isdigit() and str(y) in country.keys()]
+    # ls = [y for y in years if str(y).isdigit() and str(y) in country.keys()]
+    ls = [y for y in years if str(y).isdigit()]
     toReturn = [country['CountryName']]
     for y in ls:
-        toReturn.append(country[y])
+        try:
+            toReturn.append(country[y])
+        except:
+            toReturn.append('')
     if len(toReturn) == 1:
         pass
         # Just name in list dont return
@@ -231,22 +247,18 @@ def year_range(items, country):
 
 
 def top_den_list(year, items):
-    item = [key for key in items if year in key]
-    item.sort(key=lambda x: x[year]/x['Area'], reverse=True)
-
+    items.sort(key=lambda x: x[year]/x['Area'], reverse=True)
     top_list = []
-    for i, elem in enumerate(item):
+    for i, elem in enumerate(items):
         top_list.append(
             [elem['CountryName'], str(round(elem[year]/elem['Area'], 2)), i+1])
     return (top_list)
 
 
 def top_pop_list(year, items):
-    item = [key for key in items if year in key]
-    item.sort(key=lambda x: x[year], reverse=True)
-
+    items.sort(key=lambda x: x[year], reverse=True)
     top_list = []
-    for i, elem in enumerate(item):
+    for i, elem in enumerate(items):
         top_list.append([elem['CountryName'], str(elem[year]), i+1])
     return (top_list)
 
@@ -312,12 +324,14 @@ def gen_pop_table(client, country):
     resp = table.scan()['Items']
     outputTable = []
     years = year_range(resp, country)
+    if len(years) < 1:
+        return outputTable
     for year in range(years[0], years[-1] + 1):
         out = get_pop_rank(resp, str(year), country)
         outputTable.append(out)
-    while None in outputTable[0]:
+    while len(outputTable) > 0 and None in outputTable[0]:
         outputTable.pop(0)
-    while None in outputTable[-1]:
+    while len(outputTable) > 0 and None in outputTable[-1]:
         outputTable.pop()
     return outputTable
 
