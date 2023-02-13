@@ -54,6 +54,46 @@
 
 - This file contains the modules for creating tables, deleting tables, and two query functions for both country name and from ISO3.
 
+**Locations for 7 required modules**
+
+- Many of these functions are not designed to be directly interfaced with as I assumed was the intention. Since they are required however, below is file and location of the function and a shor description
+
+1. Create a table
+   - File: `modules/table.py`
+   - Function: `create(client, dict_config)` line 8 -> client = AWS boto3 client, dict_config = params as outlined in the boto3 docs
+     - This function will create a table based on the dict_config
+   - Function: `create_nonecon(client, file)` line 24 -> client = AWS boto3 client, file = the un_shortlist csv to load country names as keys
+2. Delete a table
+   - File: `modules/table.py`
+   - Function: `delete(client, table_name)` line 16
+   - This will delete the table at the target table_name
+3. Load Records into the table
+   - File: `modules/loaddata.py`
+   - Function: `load(client, dir)` line 121
+   - This function will scan for all csv files in the `dir` directory and call a specific function for each file. Since data varied between all the files, a general function to handle this was my first approach but it became unreadable after a bit. Cleaner this way especially for the scale of data being added.
+4. Add individual record
+   - File: `modules/loaddata.py`
+   - Functon: `load_single(client)` line 147
+   - This function prompts the user for input from the terminal to collect the data that will be added to which table. Which then calls the following:
+   - Function: `add_col(client, table_name, key, col_nam, col_val)` line 10
+   - This function uses update_item from boto3 to check if the attribute does not exist and then adds the data.
+5. Delete Individual record
+   - File: `modules/loaddata.py`
+   - Function: `delete_data(client)` line 229
+   - This function prompts the user for input from terminal to find which item should be deleted. This function will then call the following:
+   - Function: `delete_entry(client, table_name, item, country)` line 216 **or** `delete_country(client, country, table)` line 211
+   - These functions will remove the provided value from the table.
+6. Dump data from table
+   - File: `modules/loaddata.py`
+   - Function: `dump_all(client, table)` line 265
+   - This function will return the raw data from the boto3 `scan()` function.
+   - Not currently used in any of the main functionality although the scan() function is often used.
+7. Query Module
+   - File: `modules/table.py`
+   - Function: `query_data(client, table_name, key)` line 82 **or** `query_from_iso3(client, key)` line 94
+   - These function take in a key and the the boto3 `get()` function to get the data at the given key.
+   - The from ISO3 function will use a scan and FilterExpression for ISO3 values equal to the key
+
 ## How to use the modules
 
 ## How to generate reports
