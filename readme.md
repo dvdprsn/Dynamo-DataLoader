@@ -1,6 +1,11 @@
 # CIS\*4010 Assignment 2 (DynamoDB)
 
-## Running intructions
+## Running Instructions
+
+** aws.conf file with default profile is required **
+** Creating and loading initial table data **
+
+1. execute `python3 create_load.py`
 
 ## Module Structure
 
