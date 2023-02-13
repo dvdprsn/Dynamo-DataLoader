@@ -3,6 +3,7 @@ from modules import aws_client, reports
 
 def main():
     db_client = aws_client.create_client()
+
     selection = input('Generate (1) Global Report (2) Single Report > ')
     if selection == '1':
         year = input('Enter a year to create report for > ')
