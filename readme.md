@@ -1,38 +1,43 @@
 # CIS\*4010 Assignment 2 (DynamoDB)
 
-## Notes
+`
 
-## Running Instructions
+David Pearson
 
-**aws.conf file with default profile is required**
-**Creating and loading initial table data**
+1050197
 
-1. execute `python3 create_load.py`
+dpears04@uoguelph.ca
 
-- This will create the two tables, `dpears04_NonEconomic` and `dpears04_Economic`
-- It will also initialize the key values (country names) from the un_shortlist file
-- Once the two tables have been created, assuming neither of the tables existed already, the program will populate the tables with data from the csv files in the `data/` directory
-- The program will notify the user at each step of this process and it may take some time to populate the tables.
-
-**Manipulating/Adding Data to existing tables**
-
-1. execute `python3 modify_data.py`
-
-- This program will initiate an interactive terminal guide that steps the user through providing all the necessary info for the functions
-- The user will have the option of loading from formatted csv files or from prompts
-  **Loading from File** This is also covered in the How to Make Edits section below
-- If the user selects `Load data from add_data folder` the program will try to add data from all CSV files located in that directory.
-  Included in the submission are examples files for how the program expects the data to be formatted. **File Format** Generally speaking, the program expects the
-  files to have the same names and headers as the original, provided csv files found in the `data/` folder.
-- The user can also just select prompts and the program will step by step collect information to be added to the table - much more intuitive
-
-**Creating Reports**
-
-1. execute `python3 create_reports.py`
-
-- This program will start an interactive command line tool to build the reports. It will ask the user for a couple pieces of information needed and then a PDF will be output to the project directory
+`
 
 ## Module Structure
+
+### File Tree
+
+```
+.
+├── add_data
+│   ├── shortlist_area.csv
+│   └── un_shortlist.csv
+├── aws.conf
+├── create_load.py
+├── create_reports.py
+├── data
+│   ├── shortlist_area.csv
+│   ├── shortlist_capitals.csv
+│   ├── shortlist_curpop.csv
+│   ├── shortlist_gdppc.csv
+│   ├── shortlist_languages.csv
+│   └── un_shortlist.csv
+├── modify_data.py
+├── modules
+│   ├── aws_client.py
+│   ├── loaddata.py
+│   ├── reports.py
+│   └── table.py
+├── readme.md
+└── requirements.txt
+```
 
 - The main 3 functionalities we were tasked to implement have been divided into 3 seprate programs accordingly.
 - The program `create_load.py` should be executed first as this will create the tables and load them with the provided csv data.
@@ -96,9 +101,53 @@
 
 ## How to use the modules
 
+**Note** This section will outline how to run the 3 programs outlined in step 4 of the Assignment 2 description. As mentioned above, the 7 modules above were not designed to be directly interfaced with.
+
+**aws.conf file with default profile is required**
+
+### Creating and loading initial table data
+
+1. execute `python3 create_load.py`
+
+- This will create the two tables, `dpears04_NonEconomic` and `dpears04_Economic`
+- It will also initialize the key values (country names) from the un_shortlist file
+- Once the two tables have been created, assuming neither of the tables existed already, the program will populate the tables with data from the csv files in the `data/` directory
+- The program will notify the user at each step of this process and it may take some time to populate the tables.
+
+### Manipulating/Adding Data to existing tables
+
+1. execute `python3 modify_data.py`
+
+- This program will initiate an interactive terminal guide that steps the user through providing all the necessary info for the functions
+- The user will have the option of loading from formatted csv files or from prompts
+  **Loading from File** This is also covered in the How to Make Edits section below
+- If the user selects `Load data from add_data folder` the program will try to add data from all CSV files located in that directory.
+  Included in the submission are examples files for how the program expects the data to be formatted. **File Format** Generally speaking, the program expects the
+  files to have the same names and headers as the original, provided csv files found in the `data/` folder.
+- The user can also just select prompts and the program will step by step collect information to be added to the table - much more intuitive
+
+**More information on table modifications is outlined below**
+
+### Creating Reports
+
+1. execute `python3 create_reports.py`
+
+- This program will start an interactive command line tool to build the reports. It will ask the user for a couple pieces of information needed and then a PDF will be output to the project directory
+
 ## How to generate reports
 
 ## How to make edits to the table
+
+**Execute `python3 modify_data.py` and follow the prompts**
+
+- There's two options for adding new data to the tables
+
+1. Through prompts (Easiest and recommended)
+2. Through csv files in `add_data/` directory
+
+The prompts will only allow adding a single data point at a time, so adding multiple years of population data would require multiple executions. The csv option works well for bulk loading new data, but requires a special format described below.
+
+Generally, this special format is identical to the files in `data/` but modified with any data you wish added
 
 ### Adding New Data
 
@@ -117,9 +166,18 @@
 - Similar steps can be followed for adding any other additional data so long as it is contained in the file with the same name
   it would have been if it was in the initial load from the `data/` folder.
 
+- **tl;dr:** Create a copy of the csv from the data directory that includes the data you would like to add in the add_data directory. Either add the new data to an existing row for the country it should be added to or, create a new row at the bottom for a new country.
+- Upon telling the `modify_data.py` program to use the add_data directory you will likely recieve many errors indicating the data already exists - this can be avoided by removing the rows with existing data. Despite this, the new data will still be added to the table.
+
 - Notably, this is not nearly as intuitive as following the prompts but it allows bulk adding information to the table if for example the user wished to add a new country
 
-#### Through prompts
+#### Through prompts (Easiest)
+
+- The program will prompt the user for various info to help build the data to be added.
+
+### Deleting Single data point
+
+### Deleting Country (row)
 
 ## Limitations
 
