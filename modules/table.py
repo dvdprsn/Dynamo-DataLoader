@@ -63,15 +63,20 @@ def create_econ(client, file):
     loaddata.init_table(client, ECON, file)
 
 
-def init_tables(client, file):
+def init_tables(client):
+    file = 'data/un_shortlist.csv'
+    exists = False
     try:
         create_nonecon(client, file)
     except:
         print("Unable to create non economic table!")
+        exists = True
     try:
         create_econ(client, file)
     except:
         print("Unable to create economic table")
+        exists = True
+    return exists
 
 
 def query_data(client, table_name, key):

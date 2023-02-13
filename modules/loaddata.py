@@ -83,7 +83,7 @@ def load_capital(client, file):
         reader = csv.DictReader(csvfile)
         for row in reader:
             for key in row:
-                if not key == 'Country Name' and not key == 'ISO3':
+                if not key == 'Country Name' and not key == 'ISO3' and row[key]:
                     add_col(client, NONECON, row['Country Name'], key, row[key])
 
 
@@ -114,7 +114,7 @@ def load_langs(client, file):
                 row['Languages'] = ','.join(row[None])
                 row.pop(None)
             for key in row:
-                if not key == 'Country Name':
+                if not key == 'Country Name' and not key == 'ISO3' and row[key]:
                     add_col(client, NONECON, row['Country Name'], key, row[key])
 
 
@@ -260,3 +260,8 @@ def delete_data(client):
         except:
             print("Failed to delete entry!")
             return
+
+
+def dump_all(client, table):
+    table = client.Table(table)
+    return table.scan()
