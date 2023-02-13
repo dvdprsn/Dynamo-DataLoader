@@ -1,4 +1,4 @@
-from modules import aws_client, reports
+from modules import aws_client, reports, table
 
 
 def main():
@@ -12,7 +12,13 @@ def main():
             return
         reports.pdf_global(db_client, year)
     else:
-        country_name = input("Enter country name > ").title()
+        country_name = input("Enter country name or ISO3 > ").title()
+        if len(country_name) == 3:
+            try:
+                country_name = table.query_from_iso3(db_client, country_name.upper())
+            except:
+                print("Item does not have an ISO3 value!")
+                return
         reports.pdf_single(db_client, country_name)
 
     print("Report created")
