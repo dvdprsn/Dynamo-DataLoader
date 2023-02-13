@@ -148,7 +148,10 @@ def load_single(client):
     inp = -1
     # Check if the user wants to load from interactive program or from contents of add_data
     while inp not in range(1, 3):
-        inp = int(input("Load data from (1) Prompts (2) add_data Folder > "))
+        try:
+            inp = int(input("Load data from (1) Prompts (2) add_data Folder > "))
+        except:
+            pass
     if inp == 2:
         print("Attempting to load data from the add_data directory")
         load(client, 'add_data')
@@ -156,7 +159,10 @@ def load_single(client):
 
     inp = -1
     while inp not in range(1, 3):
-        inp = int(input("Select Table (1) NonEconomic (2) Economic > "))
+        try:
+            inp = int(input("Select Table (1) NonEconomic (2) Economic > "))
+        except:
+            pass
     table_name = None
     if inp == 1:
         table_name = NONECON

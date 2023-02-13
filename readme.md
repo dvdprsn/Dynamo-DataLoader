@@ -112,6 +112,7 @@ dpears04@uoguelph.ca
 - It will also initialize the key values (country names) from the un_shortlist file
 - Once the two tables have been created, assuming neither of the tables existed already, the program will populate the tables with data from the csv files in the `data/` directory
 - The program will notify the user at each step of this process and it may take some time to populate the tables.
+- If this program is ran again once the tables exist, it will not try to repopulate the tables
 
 ### Manipulating/Adding Data to existing tables
 
@@ -209,7 +210,7 @@ Generally, this special format is identical to the files in `data/` but modified
 - The interactive programs are not looped, meaning to continue changing data in the table it should be rerun
 - It is assumed an file with the name `aws.conf` will be provided by the grader, this file should have the same structure from assignment 1, just renamed since we were not working with S3 anymore.
 - The reports will be output in a PDF format using the reportlab library, this is included in the requirements.txt file and should be downloaded ahead of execution for the reports
-- Tested on Mac and WSL Debian - reportlab failed to install on the VirtualBox SoCS image with a string of errors that couldnt be resolved.
+- Tested on Mac and WSL Debian - reportlab failed to install on the VirtualBox SoCS image with a string of system errors that couldnt be resolved.
 - The program to modify data and build the reports assumes that the tables exist and are populated with the provided data and will through errors if the tables with expected names do no exists. In other words, `python3 create_load.py` should be run first.
 - Tables created by `create_load.py` will have the following names `dpears04_Economic` and `dpears04_NonEconomic` - for the size of the data it was easier just to have two tables.
 - These tables will use 'CountryName' as the primary key for each data entry. This can be challenging for countries with more complex names, as such the interactive programs will assume three letter inputs for the country is the ISO3 value and will be accepted.

@@ -6,7 +6,7 @@ def main():
 
     selection = input('Generate (1) Global Report (2) Single Report > ')
     if selection == '1':
-        year = input('Enter a year to create report for > ')
+        year = input('Enter a year to create global report for > ')
         if not year.isdigit():
             print("Enter a valid year!")
             return
