@@ -24,8 +24,7 @@ def add_col(client, table_name, key, col_name, col_data):
             }
         )
     except:
-        # TODO: If we cant just update the table as is
-        print(f"{col_name} already exists in table!")
+        print(f"{col_name} already exists in table - Unable to add")
         return
 
 
@@ -154,6 +153,7 @@ def load(client, dir):
 
 def load_single(client):
     inp = -1
+    # Check if the user wants to load from interactive program or from contents of add_data
     while inp not in range(1, 3):
         inp = int(input("Load data from (1) Prompts (2) add_data Folder > "))
     if inp == 2:

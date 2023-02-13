@@ -158,19 +158,32 @@ def pdf_global(client, year):
     p2 = Paragraph("GDP Per Capita for all Countries",
                    sample_style_sheet['Heading3'])
     flowables.append(p2)
+    # Gets a list of every single year within the economic table
+    # For entry d in the table response, for key k in entry d, append int(k) if k is a digit
+    # Convert to a set to remove duplicate years -> convert back to list
     years = list(set([int(k)
                  for d in respECON for k in d.keys() if k.isdigit()]))
+    # For every year in the economic table, figure out which decade its in and add to list of decades
+    # year//10 -> this gets the floor of the division of the year by 10 for example 1967 // 10 = 196
+    # Multiple this value by 10 to get the formatted decade for examle 196 * 10 = 1960
+    # Covert to set to remove dups and convert back to list
     decades = list(set([(year // 10) * 10 for year in years]))
     decades.sort()
     ls = []
     headers = []
+    # Sort in alphabetical order
     respECON.sort(key=lambda x: x['CountryName'])
+    # For each decade found within the table
     for decade in decades:
+        # Converts the year int to string if year y is within the current decade
         headers = [str(y) for y in years if str(y)[2] is str(decade)[2]]
-        for elem in respECON:
-            ls.append(decade_list(elem, headers))
+        # For all countries in the economic table
+        for country in respECON:
+            # append the list of GDPPC found in the current decade for each country to the table list
+            ls.append(decade_list(country, headers))
         p2 = Paragraph(f"{decade}'s Table", sample_style_sheet['Heading3'])
         flowables.append(p2)
+        # We append this to the front of the list now as not to mess with the decade_list function, saves another for loop to remove non integers
         headers.insert(0, 'Country Name')
         ls.insert(0, headers)
         t = Table(ls, repeatRows=1, style=TableStyle(grid))
@@ -208,34 +221,39 @@ def ascii_year(client, year):
 
     # List of all years within the table
     years = list(set([int(k) for d in resp for k in d.keys() if k.isdigit()]))
+    # Isolate the decades in the table
     decades = list(set([(year // 10) * 10 for year in years]))
     decades.sort()
     ls = []
-    headers = ['Country Name']
+    headers = []
     print("\nGDP Per Capita for all countries")
+    # Sort in alphabeltical order
     resp.sort(key=lambda x: x['CountryName'])
     for decade in decades:
+        # If year y is contained within the current decade
         headers = [str(y) for y in years if str(y)[2] is str(decade)[2]]
+        # For countries in the response
         for elem in resp:
             ls.append(decade_list(elem, headers))
         print(f"\n{decade}'s Table")
+        headers.insert(0, 'Country Name')
         print(tabulate(ls, headers=headers))
         headers = ['Country Name']
         ls = []
 
 
+# Creates a list of all GDPPC data for a given country in a provided decade range (years)
 def decade_list(country, years):
-    # ls = [y for y in years if str(y).isdigit() and str(y) in country.keys()]
-    ls = [y for y in years if str(y).isdigit()]
+    # TODO: Commented this out bc it might be redundant
+    # ls = [y for y in years if str(y).isdigit()]
+    # Append the country name to the front of the list
     toReturn = [country['CountryName']]
-    for y in ls:
+    for y in years:
+        # If the country does not have a GDPPC entry for the given year y append a blank space so table isnt wonky
         try:
             toReturn.append(country[y])
         except:
             toReturn.append('')
-    if len(toReturn) == 1:
-        pass
-        # Just name in list dont return
     return toReturn
 
 

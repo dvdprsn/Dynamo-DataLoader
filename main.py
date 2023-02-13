@@ -19,7 +19,7 @@ def main():
     # Load all provided CSVs from the data folder
     # loaddata.load(db_client, 'data')
     # Add a single data entry to a table
-    # loaddata.load_single(db_client)
+    loaddata.load_single(db_client)
 
     # reports.pdf_single(db_client, 'United States')
     reports.pdf_global(db_client, '2000')
