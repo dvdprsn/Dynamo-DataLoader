@@ -36,6 +36,7 @@ dpears04@uoguelph.ca
 ```
 
 - `add_data/` directory -> This contains the csv files for bulk appending NEW data to the tables. Included in the submission is two files to serve as an example for how this works and for format. This is explained further below
+- Changes to input CSV files - The only change was adding the header to the un_shortlist.csv file
 
 - The main 3 functionalities we were tasked to implement have been divided into 3 seprate programs accordingly.
 - The program `create_load.py` should be executed first as this will create the tables and load them with the provided csv data.
@@ -195,6 +196,20 @@ Generally, this special format is identical to the files in `data/` but modified
 4. You are now given the option to delete the entire country or just the single data point in the country -> select 1 or 2
 5. For single data point -> Enter attribute name where the data contained within should be deleted. For example 2019 for GDPPC or pop or languages, currency etc
 
-## Limitations
+## Limitations/Assumptions
 
-- Creating single country reports is limited to countries that have sufficient data to create the report. This must include ...
+- Creating single country reports is limited to countries that have sufficient data to create the report. Sufficient means: Name, Official Name, Area, Languages, currency, and capital. The tables will be empty if there is no Population or Economic data.
+- Limited input validation for the interactive programs (1) or (2) selections. If it doesnt get a value it expects it will default to one of the options.
+- Limited output for success or failure to modify the table.
+- Blank rows will still be included in the GDPPC for all countries table in the global report. I have elected to handle it this way as not including am empty row
+  tells the exact same information as it being there, that is, no data exists for this timeframe. But, for an analyst it enables seeing at a glance that for a given decade
+  which countries do not have data.
+- If in a given decade no country has a data point for a single year, this year is not included in the table. This means if a data point is added for Canada in 2020, this would create a new decade table,
+  but would only have a 2020 column.
+- The interactive programs are not looped, meaning to continue changing data in the table it should be rerun
+- It is assumed an file with the name `aws.conf` will be provided by the grader, this file should have the same structure from assignment 1, just renamed since we were not working with S3 anymore.
+- The reports will be output in a PDF format using the reportlab library, this is included in the requirements.txt file and should be downloaded ahead of execution for the reports
+- Tested on Mac and WSL Debain + VirtualBox copy of the socs Debian enviroment
+- The program to modify data and build the reports assumes that the tables exist and are populated with the provided data and will through errors if the tables with expected names do no exists. In other words, `python3 create_load.py` should be run first.
+- Tables created by `create_load.py` will have the following names `dpears04_Economic` and `dpears04_NonEconomic` - for the size of the data it was easier just to have two tables.
+- These tables will use 'CountryName' as the primary key for each data entry. This can be challenging for countries with more complex names, as such the interactive programs will assume three letter inputs for the country is the ISO3 value and will be accepted.
