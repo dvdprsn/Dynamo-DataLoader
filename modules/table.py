@@ -1,5 +1,5 @@
 from boto3.dynamodb.conditions import Attr
-import loaddata
+from . import loaddata
 
 NONECON = 'dpears04_NonEconomic'
 ECON = 'dpears04_Economic'
@@ -82,7 +82,8 @@ def query_data(client, table_name, key):
     if item:
         return item
     else:
-        print("No item found!")
+        print("Item not found!")
+        return
 
 
 def query_from_iso3(client, key):

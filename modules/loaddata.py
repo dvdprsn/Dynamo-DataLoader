@@ -1,6 +1,6 @@
 import csv
 import os
-import table
+from . import table
 
 NONECON = 'dpears04_NonEconomic'
 ECON = 'dpears04_Economic'
@@ -54,11 +54,7 @@ def init_table(client, table_name, file):
         reader = csv.DictReader(csvfile)
         with table.batch_writer() as batch:
             for row in reader:
-                batch.put_item(
-                    Item={
-                        'CountryName': row['Country Name']
-                    }
-                )
+                batch.put_item(Item={'CountryName': row['Country Name']})
 
 
 # Add the UN short list data to the table
@@ -68,8 +64,7 @@ def load_un(client, file):
         for row in reader:
             for key in row:
                 if not key == 'Country Name' and row[key]:
-                    add_col(client, NONECON,
-                            row['Country Name'], key.replace(' ', ''), row[key])
+                    add_col(client, NONECON, row['Country Name'], key.replace(' ', ''), row[key])
 
 
 def load_curpop(client, file):
@@ -78,11 +73,9 @@ def load_curpop(client, file):
         for row in reader:
             for key in row:
                 if not key == 'Country' and not key == 'Currency' and row[key]:
-                    add_col(client, NONECON,
-                            row['Country'], key.replace('Population ', ''), int(row[key]))
+                    add_col(client, NONECON, row['Country'], key.replace('Population ', ''), int(row[key]))
                 elif key == 'Currency':
-                    add_col(client, ECON,
-                            row['Country'], key, row[key])
+                    add_col(client, ECON, row['Country'], key, row[key])
 
 
 def load_capital(client, file):
@@ -91,8 +84,7 @@ def load_capital(client, file):
         for row in reader:
             for key in row:
                 if not key == 'Country Name' and not key == 'ISO3':
-                    add_col(client, NONECON,
-                            row['Country Name'], key, row[key])
+                    add_col(client, NONECON, row['Country Name'], key, row[key])
 
 
 def load_area(client, file):
@@ -101,8 +93,7 @@ def load_area(client, file):
         for row in reader:
             for key in row:
                 if not key == 'Country Name' and not key == 'ISO3' and row[key]:
-                    add_col(client, NONECON,
-                            row['Country Name'], key, int(row[key]))
+                    add_col(client, NONECON, row['Country Name'], key, int(row[key]))
 
 
 def load_gdppc(client, file):
@@ -111,8 +102,7 @@ def load_gdppc(client, file):
         for row in reader:
             for key in row:
                 if not key == 'Country' and row[key]:
-                    add_col(client, ECON,
-                            row['Country'], key, int(row[key]))
+                    add_col(client, ECON, row['Country'], key, int(row[key]))
 
 
 def load_langs(client, file):
@@ -125,8 +115,7 @@ def load_langs(client, file):
                 row.pop(None)
             for key in row:
                 if not key == 'Country Name':
-                    add_col(client, NONECON,
-                            row['Country Name'], key, row[key])
+                    add_col(client, NONECON, row['Country Name'], key, row[key])
 
 
 def load(client, dir):
@@ -186,6 +175,9 @@ def load_single(client):
     try:
         cur_data = table.query_data(client, table_name, key)
     except:
+        # Country does not yet exist
+        client.Table(table_name).put_item(Item={'CountryName': key})
+        print("Attempted to create new entry: " + key)
         return
 
     col = input("Enter attribute name > ")
@@ -214,3 +206,57 @@ def load_single(client):
         add_col(client, table_name, key, col, val)
     except:
         print("Unable to add data")
+
+
+def delete_country(client, country, table):
+    table = client.Table(table)
+    table.delete_item(Key={'CountryName': country})
+
+
+def delete_entry(client, table_name, item, country):
+    table = client.Table(table_name)
+
+    table.update_item(
+        Key={
+            'CountryName': country
+        },
+        UpdateExpression='REMOVE #attr1',
+        ExpressionAttributeNames={
+            '#attr1': item
+        })
+
+
+def delete_data(client):
+    table_name = input("Select Table (1) Non Economic (2) Economic > ")
+    if table_name == '1':
+        table_name = NONECON
+    else:
+        table_name = ECON
+
+    country_name = input("Enter country name or ISO3 > ").title()
+    if len(country_name) == 3:
+        try:
+            country_name = table.query_from_iso3(client, country_name.upper())
+        except:
+            print("Item does not have an ISO3 value!")
+            return
+
+    inp = input(
+        "Select Option (1) Delete entire country (2) Delete data entry in country > ")
+    if inp == '1':
+        try:
+            delete_country(client, country_name, table_name)
+        except:
+            print("Failed to delete entry!")
+            return
+    else:
+        item_name = input('Enter attribute name > ')
+        if 'iso' in item_name:
+            item_name = item_name.upper()
+        else:
+            item_name = item_name.title().replace(' ', '')
+        try:
+            delete_entry(client, table_name, item_name, country_name)
+        except:
+            print("Failed to delete entry!")
+            return

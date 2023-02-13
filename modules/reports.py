@@ -1,8 +1,7 @@
-from tabulate import tabulate
-import table
-from reportlab.platypus import SimpleDocTemplate, Table, Paragraph, TableStyle
-from reportlab.lib.styles import getSampleStyleSheet
+from . import table
 from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import SimpleDocTemplate, Table, Paragraph, TableStyle
 
 NONECON = 'dpears04_NonEconomic'
 ECON = 'dpears04_Economic'
@@ -11,6 +10,8 @@ ECON = 'dpears04_Economic'
 def pdf_single(client, country):
     country = country.title()
     resp = table.query_data(client, NONECON, country)
+    if resp is None:
+        return
     data = gen_pop_table(client, country)
 
     grid = [('GRID', (0, 0), (-1, -1), 0.25, colors.black),
@@ -31,10 +32,8 @@ def pdf_single(client, country):
     # Build extra info table
     areaTable = []
     try:
-        areaTable.append(
-            [f"Area: {resp['Area']} sq km ({get_area_rank(client, country)})"])
-        areaTable.append(
-            [f"Offical Languages: {resp['Languages']}\nCapital City: {resp['Capital']}"])
+        areaTable.append([f"Area: {resp['Area']} sq km ({get_area_rank(client, country)})"])
+        areaTable.append([f"Offical Languages: {resp['Languages']}\nCapital City: {resp['Capital']}"])
     except:
         print("Missing Data (area, captial, languages), unable to generate the report!")
         return
@@ -73,30 +72,6 @@ def pdf_single(client, country):
     my_doc.build(flowables)
 
 
-def ascii_single(client, country):
-    country = country.title()
-    resp = table.query_data(client, NONECON, country)
-
-    data = gen_pop_table(client, country)
-    print(f"-==-{country}-==-\n{resp['OfficialName']}")
-    print(
-        f"Area: {resp['Area']} sq km ({get_area_rank(client, country)})")
-    print("---------")
-    print(f"Offical Languages: {resp['Languages']}")
-    print(f"Capital City: {resp['Capital']}")
-
-    print('-----Population Data-----')
-    print(tabulate(data, headers=[
-          'Year', 'Population', 'Rank', 'Population Density', 'Rank']))
-    print('-----Economic Data------')
-
-    resp = table.query_data(client, ECON, country)
-    data = gen_gdp_table(client, country)
-    print(f"Currency: {resp['Currency']}")
-    print("-------------")
-    print(tabulate(data, headers=['year', 'GDPPC', 'Rank']))
-
-
 def pdf_global(client, year):
     tableECON = client.Table(ECON)
     respECON = tableECON.scan()['Items']
@@ -123,8 +98,7 @@ def pdf_global(client, year):
     p2 = Paragraph(f"Number of Countries: {len(items)}")
     flowables.append(p2)
 
-    p2 = Paragraph(
-        f"Table of Countries Ranked by Population (largest to smallest)", sample_style_sheet['Heading3'])
+    p2 = Paragraph(f"Table of Countries Ranked by Population (largest to smallest)", sample_style_sheet['Heading3'])
     flowables.append(p2)
 
     # POP Table
@@ -135,8 +109,7 @@ def pdf_global(client, year):
     flowables.append(t)
 
     # Area Table
-    p2 = Paragraph(
-        f"Table of Countries Ranked by Area (largest to smallest)", sample_style_sheet['Heading3'])
+    p2 = Paragraph(f"Table of Countries Ranked by Area (largest to smallest)", sample_style_sheet['Heading3'])
     flowables.append(p2)
     data = top_area_list(items)
     popTable = ['Country Name', 'Area', 'Rank']
@@ -145,8 +118,7 @@ def pdf_global(client, year):
     flowables.append(t)
 
     # DEN Table
-    p2 = Paragraph(
-        f"Table of Countries Ranked by Density (largest to smallest)", sample_style_sheet['Heading3'])
+    p2 = Paragraph(f"Table of Countries Ranked by Density (largest to smallest)", sample_style_sheet['Heading3'])
     flowables.append(p2)
     data = top_den_list(year, items)
     popTable = ['Country Name', 'Density', 'Rank']
@@ -155,14 +127,12 @@ def pdf_global(client, year):
     flowables.append(t)
 
     # List of all years within the table
-    p2 = Paragraph("GDP Per Capita for all Countries",
-                   sample_style_sheet['Heading3'])
+    p2 = Paragraph("GDP Per Capita for all Countries", sample_style_sheet['Heading3'])
     flowables.append(p2)
     # Gets a list of every single year within the economic table
     # For entry d in the table response, for key k in entry d, append int(k) if k is a digit
     # Convert to a set to remove duplicate years -> convert back to list
-    years = list(set([int(k)
-                 for d in respECON for k in d.keys() if k.isdigit()]))
+    years = list(set([int(k) for d in respECON for k in d.keys() if k.isdigit()]))
     # For every year in the economic table, figure out which decade its in and add to list of decades
     # year//10 -> this gets the floor of the division of the year by 10 for example 1967 // 10 = 196
     # Multiple this value by 10 to get the formatted decade for examle 196 * 10 = 1960
@@ -180,7 +150,8 @@ def pdf_global(client, year):
         # For all countries in the economic table
         for country in respECON:
             # append the list of GDPPC found in the current decade for each country to the table list
-            ls.append(decade_list(country, headers))
+            entry = decade_list(country, headers)
+            ls.append(entry)
         p2 = Paragraph(f"{decade}'s Table", sample_style_sheet['Heading3'])
         flowables.append(p2)
         # We append this to the front of the list now as not to mess with the decade_list function, saves another for loop to remove non integers
@@ -194,58 +165,8 @@ def pdf_global(client, year):
     my_doc.build(flowables)
 
 
-def ascii_year(client, year):
-    tableECON = client.Table(ECON)
-    resp = tableECON.scan()['Items']
-    year = str(year)
-    table = client.Table(NONECON)
-    respNon = table.scan(ProjectionExpression='CountryName, #attr1, #attr2',
-                         ExpressionAttributeNames={'#attr1': str(year), '#attr2': 'Area'})
-    items = respNon['Items']
-    items = [key for key in items if year in key and 'Area' in key]
-
-    print(f"Year: {year}")
-    print(f"Number of countries: {len(items)}")
-
-    print("Table of Countries Ranked by Population (largerst to smallest)")
-    print(tabulate(top_pop_list(str(year), items), headers=[
-          'Country Name', 'Population', 'Rank']))
-
-    print("\nTable of countries ranked by area (largest to smallest)")
-    print(tabulate(top_area_list(items), headers=[
-          'Country Name', 'Area', 'Rank']))
-
-    print("\nTable of Countries ranked by Density (largest to smallest)")
-    print(tabulate(top_den_list(str(year), items), headers=[
-          'Country Name', 'Density', 'Rank']))
-
-    # List of all years within the table
-    years = list(set([int(k) for d in resp for k in d.keys() if k.isdigit()]))
-    # Isolate the decades in the table
-    decades = list(set([(year // 10) * 10 for year in years]))
-    decades.sort()
-    ls = []
-    headers = []
-    print("\nGDP Per Capita for all countries")
-    # Sort in alphabeltical order
-    resp.sort(key=lambda x: x['CountryName'])
-    for decade in decades:
-        # If year y is contained within the current decade
-        headers = [str(y) for y in years if str(y)[2] is str(decade)[2]]
-        # For countries in the response
-        for elem in resp:
-            ls.append(decade_list(elem, headers))
-        print(f"\n{decade}'s Table")
-        headers.insert(0, 'Country Name')
-        print(tabulate(ls, headers=headers))
-        headers = ['Country Name']
-        ls = []
-
-
 # Creates a list of all GDPPC data for a given country in a provided decade range (years)
 def decade_list(country, years):
-    # TODO: Commented this out bc it might be redundant
-    # ls = [y for y in years if str(y).isdigit()]
     # Append the country name to the front of the list
     toReturn = [country['CountryName']]
     for y in years:
@@ -268,8 +189,7 @@ def top_den_list(year, items):
     items.sort(key=lambda x: x[year]/x['Area'], reverse=True)
     top_list = []
     for i, elem in enumerate(items):
-        top_list.append(
-            [elem['CountryName'], str(round(elem[year]/elem['Area'], 2)), i+1])
+        top_list.append([elem['CountryName'], str(round(elem[year]/elem['Area'], 2)), i+1])
     return (top_list)
 
 
