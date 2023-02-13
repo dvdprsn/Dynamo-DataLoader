@@ -22,7 +22,7 @@ def main():
     # loaddata.load_single(db_client)
 
     # reports.pdf_single(db_client, 'United States')
-    reports.pdf_global(db_client, '2019')
+    reports.pdf_global(db_client, '2000')
 
 
 if __name__ == "__main__":

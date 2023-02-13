@@ -39,7 +39,6 @@ def create_nonecon(client, file):
     print("Creating noneconomic table...")
     table.wait_until_exists()
     print("Table Created!")
-    # print('init table')
     loaddata.init_table(client, NONECON, file)
 
 
@@ -86,7 +85,7 @@ def query_data(client, table_name, key):
         print("No item found!")
 
 
-def query_from_iso3(client, table_name, key):
+def query_from_iso3(client, key):
     table = client.Table(NONECON)
     response = table.scan(
         FilterExpression=Attr('ISO3').eq(key)

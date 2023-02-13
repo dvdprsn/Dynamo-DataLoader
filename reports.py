@@ -362,6 +362,8 @@ def gen_gdp_table(client, country):
     resp = table.scan()['Items']
     outputTable = []
     years = year_range(resp, country)
+    if len(years) < 1:
+        return outputTable
     for year in range(years[0], years[-1] + 1):
         out = get_gdp_rank(resp, str(year), country)
         outputTable.append(out)

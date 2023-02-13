@@ -24,6 +24,8 @@ def add_col(client, table_name, key, col_name, col_data):
             }
         )
     except:
+        # TODO: If we cant just update the table as is
+        print(f"{col_name} already exists in table!")
         return
 
 
