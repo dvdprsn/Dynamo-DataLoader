@@ -55,6 +55,7 @@ dpears04@uoguelph.ca
 ## How to use the modules
 
 **For each entry below, the required import statement is listed, how to call the function, and any other relevant information such as arguments or return values to expect**
+
 **`aws.conf` is required in the project root with the authentication keys -> same file and structure as A1 just renamed since we are not working with S3 anymore**
 
 - In all instances where an interactive program asks from an attribute name this refers to the column name in the given table
