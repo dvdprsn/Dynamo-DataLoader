@@ -4,6 +4,8 @@ from . import loaddata
 NONECON = 'dpears04_NonEconomic'
 ECON = 'dpears04_Economic'
 
+# Generic create
+
 
 def create(client, dict_config):
     table = client.create_table(**dict_config)
@@ -12,6 +14,8 @@ def create(client, dict_config):
     print("Table Created")
     return table
 
+# Generic delete
+
 
 def delete(client, table_name):
     table = client.Table(table_name)
@@ -19,6 +23,8 @@ def delete(client, table_name):
     print("Deleting Table...")
     table.wait_until_not_exists()
     print("Table Deleted")
+
+# Hides the params dict from other functions
 
 
 def create_nonecon(client, file):
@@ -41,6 +47,8 @@ def create_nonecon(client, file):
     print("Table Created!")
     loaddata.init_table(client, NONECON, file)
 
+# Easier to create with defaults like this
+
 
 def create_econ(client, file):
     params = {
@@ -62,6 +70,8 @@ def create_econ(client, file):
     print("Table created!")
     loaddata.init_table(client, ECON, file)
 
+# Load countryname into tables
+
 
 def init_tables(client):
     file = 'data/un_shortlist.csv'
@@ -78,6 +88,8 @@ def init_tables(client):
         exists = True
     return exists
 
+# Return dict at countryname
+
 
 def query_data(client, table_name, key):
     table = client.Table(table_name)
@@ -90,6 +102,8 @@ def query_data(client, table_name, key):
         print("Item not found!")
         return
 
+# Return country name from ISO3
+
 
 def query_from_iso3(client, key):
     table = client.Table(NONECON)
@@ -97,6 +111,8 @@ def query_from_iso3(client, key):
         FilterExpression=Attr('ISO3').eq(key)
     )
     return response['Items'][0]['CountryName']
+
+# To String
 
 
 def get_all_data(client, table_name):
