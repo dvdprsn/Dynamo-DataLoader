@@ -1,10 +1,6 @@
-# CIS\*4010 Assignment 2 (DynamoDB)
+# DynamoDB Data Loader
 
 David Pearson
-
-1050197
-
-dpears04@uoguelph.ca
 
 ## File Tree
 
